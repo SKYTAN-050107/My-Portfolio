@@ -31,8 +31,12 @@ const NeonSequence = () => {
                     <h1 className={`font-neon-sans text-5xl sm:text-7xl font-bold tracking-wider mb-4 transition-all duration-300 ${animationState === 'initial' ? 'opacity-0' : ''} ${animationState === 'phase1' ? 'animate-flicker-cyan' : ''} ${(animationState === 'phase2' || animationState === 'pulse') ? 'neon-cyan group-hover:animate-flicker-cyan-loop' : ''} ${animationState === 'pulse' ? 'animate-pulse-cyan' : ''} ${animationState === 'glitch' ? 'neon-cyan opacity-50 blur-[2px]' : ''} ${animationState === 'dark' ? 'text-gray-800 opacity-20' : ''}`}>
                         I AM SKY
                     </h1>
-                    <h2 className={`font-neon-script text-3xl sm:text-5xl transition-all duration-300 ${(animationState === 'initial' || animationState === 'phase1') ? 'opacity-0' : ''} ${animationState === 'phase2' ? 'animate-flicker-pink' : ''} ${(animationState === 'phase2' || animationState === 'pulse') ? 'neon-pink' : ''} ${animationState === 'pulse' ? 'animate-pulse-pink' : ''} ${animationState === 'glitch' ? 'opacity-0 scale-95 duration-100' : ''} ${animationState === 'dark' ? 'opacity-0' : ''}`}>
-                        Welcome to my portfolio
+                    <h2 className={`font-neon-script text-3xl sm:text-5xl transition-all duration-300 ${(animationState === 'initial' || animationState === 'phase1') ? 'opacity-0' : ''} ${(animationState === 'phase2' || animationState === 'pulse') ? 'neon-pink' : ''} ${animationState === 'pulse' ? 'animate-pulse-pink' : ''} ${animationState === 'glitch' ? 'opacity-0 scale-95 duration-100' : ''} ${animationState === 'dark' ? 'opacity-0' : ''}`}>
+                        <span
+                            className={`neon-writing inline-block align-top ${animationState === 'phase2' ? 'animate-neon-write-pink' : ''} ${animationState === 'pulse' ? 'neon-writing-done' : ''}`}
+                        >
+                            Welcome to my portfolio
+                        </span>
                     </h2>
                 </div>
             </div>

@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Sacramento&display=swap');
+@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -66,6 +66,28 @@
     50% { filter: drop-shadow(0 0 20px #FF00FF); }
 }
 
+@keyframes neon-write-pink {
+    0% {
+        width: 0;
+        opacity: 0;
+        text-shadow: none;
+    }
+    8% {
+        opacity: 1;
+        text-shadow: 0 0 3px #fff;
+    }
+    100% {
+        width: 100%;
+        opacity: 1;
+        text-shadow: 0 0 5px #FFF, 0 0 15px #FF00FF, 0 0 30px #FF00FF;
+    }
+}
+
+@keyframes neon-caret-pink {
+    0%, 49% { border-right-color: rgba(255, 0, 255, 0.85); }
+    50%, 100% { border-right-color: transparent; }
+}
+
 /* User's "Flicker (Randomized)" for the cyan text main loop provided in prompt */
 @keyframes flicker-cyan-loop {
   0%, 18%, 22%, 25%, 53%, 57%, 100% {
@@ -80,6 +102,42 @@
 
 .animate-flicker-cyan-loop {
     animation: flicker-cyan-loop 3s infinite;
+}
+
+.animate-flicker-cyan {
+    animation: flicker-on-cyan 2s forwards;
+}
+
+.animate-flicker-pink {
+    animation: flicker-on-pink 1.8s forwards;
+}
+
+.animate-pulse-cyan {
+    animation: pulse-glow-cyan 1.8s ease-in-out infinite;
+}
+
+.animate-pulse-pink {
+    animation: pulse-glow-pink 1.8s ease-in-out infinite;
+}
+
+.neon-writing {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid transparent;
+}
+
+.animate-neon-write-pink {
+    animation:
+        neon-write-pink 1.7s steps(24, end) forwards,
+        neon-caret-pink 0.5s step-end 6;
+}
+
+.neon-writing-done {
+    width: 100%;
+    opacity: 1;
+    border-right-color: transparent;
 }
 
 
