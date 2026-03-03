@@ -2,6 +2,43 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import useDarkMode from '../hooks/useDarkMode';
+import DayNightToggle from '../components/DayNightToggle';
+
+const NeonSequence = () => {
+    const [animationState, setAnimationState] = React.useState('initial');
+
+    React.useEffect(() => {
+        let timers = [];
+        const startSequence = () => {
+            setAnimationState('phase1');
+            timers.push(setTimeout(() => setAnimationState('phase2'), 2000));
+            timers.push(setTimeout(() => setAnimationState('pulse'), 4000));
+            timers.push(setTimeout(() => setAnimationState('glitch'), 8000));
+            timers.push(setTimeout(() => setAnimationState('dark'), 9000));
+            timers.push(setTimeout(() => startSequence(), 10500));
+        };
+        const t = setTimeout(startSequence, 100);
+        timers.push(t);
+        return () => timers.forEach(clearTimeout);
+    }, []);
+
+    return (
+        <div className="relative z-10 mb-10 w-full group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-pink-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative bg-[#0B0E14] ring-1 ring-gray-900/5 rounded-3xl p-8 sm:p-12 overflow-hidden neon-hero-container">
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-cyan-500/5 rounded-full blur-[80px] transition-all duration-1000 ${animationState === 'pulse' ? 'opacity-30' : 'opacity-0'}`}></div>
+                <div className="flex flex-col justify-center min-h-[180px] z-20 relative text-center sm:text-left">
+                    <h1 className={`font-neon-sans text-5xl sm:text-7xl font-bold tracking-wider mb-4 transition-all duration-300 ${animationState === 'initial' ? 'opacity-0' : ''} ${animationState === 'phase1' ? 'animate-flicker-cyan' : ''} ${(animationState === 'phase2' || animationState === 'pulse') ? 'neon-cyan group-hover:animate-flicker-cyan-loop' : ''} ${animationState === 'pulse' ? 'animate-pulse-cyan' : ''} ${animationState === 'glitch' ? 'neon-cyan opacity-50 blur-[2px]' : ''} ${animationState === 'dark' ? 'text-gray-800 opacity-20' : ''}`}>
+                        I AM SKY
+                    </h1>
+                    <h2 className={`font-neon-script text-3xl sm:text-5xl transition-all duration-300 ${(animationState === 'initial' || animationState === 'phase1') ? 'opacity-0' : ''} ${animationState === 'phase2' ? 'animate-flicker-pink' : ''} ${(animationState === 'phase2' || animationState === 'pulse') ? 'neon-pink' : ''} ${animationState === 'pulse' ? 'animate-pulse-pink' : ''} ${animationState === 'glitch' ? 'opacity-0 scale-95 duration-100' : ''} ${animationState === 'dark' ? 'opacity-0' : ''}`}>
+                        Welcome to my portfolio
+                    </h2>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -49,23 +86,7 @@ const LandingPage = () => {
                             animate={{ opacity: 1, x: 0 }}
                             className="flex items-center gap-4"
                         >
-                            <motion.button
-                                whileHover={{ scale: 1.1, rotate: 15 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={toggleDarkMode}
-                                className="bg-primary/10 dark:bg-primary/20 text-primary p-1.5 sm:p-2 rounded-full border border-primary/20 dark:border-primary/30 cursor-pointer transition-all"
-                                aria-label="Toggle dark mode"
-                            >
-                                <motion.span
-                                    key={isDark ? 'dark' : 'light'}
-                                    initial={{ rotate: -90, opacity: 0 }}
-                                    animate={{ rotate: 0, opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="material-icons-round text-base sm:text-lg"
-                                >
-                                    {isDark ? 'light_mode' : 'dark_mode'}
-                                </motion.span>
-                            </motion.button>
+                            <DayNightToggle isDark={isDark} onToggle={toggleDarkMode} />
                             <button
                                 onClick={() => navigate('/login')}
                                 className="text-emerald-800 dark:text-emerald-200 font-bold hover:text-primary transition-colors duration-500 cursor-pointer text-sm sm:text-base"
@@ -102,28 +123,26 @@ const LandingPage = () => {
                                 </span>
                                 KITA_HACK 2026 Winner
                             </motion.div>
-                            <motion.h1 variants={fadeUp} className="text-5xl lg:text-7xl font-extrabold text-emerald-900 dark:text-white leading-[1.1] mb-6 tracking-tight transition-colors duration-500">
-                                Waste Management, <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">Reimagined.</span>
-                            </motion.h1>
+                            <NeonSequence />
                             <motion.p variants={fadeUp} className="text-lg text-emerald-700 dark:text-emerald-100/70 mb-10 leading-relaxed font-medium transition-colors duration-500">
-                                Schedule pickups, track your carbon footprint, and earn rewards for sustainable living. We use AI to make saving the planet effortless.
+                                Transforming ideas into digital reality with cutting-edge web technologies and creative design.
                             </motion.p>
                             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4">
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => navigate('/signup')}
-                                    className="bg-gradient-to-r from-primary to-emerald-400 text-emerald-950 px-8 py-4 rounded-2xl font-extrabold text-lg shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center justify-center gap-2 cursor-pointer border border-emerald-50 dark:border-white/20"
+                                    onClick={() => navigate('/projects')}
+                                    className="bg-gradient-to-r from-cyan-400 to-blue-500 text-emerald-950 px-8 py-4 rounded-2xl font-extrabold text-lg shadow-xl shadow-cyan-500/20 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 cursor-pointer border border-emerald-50 dark:border-white/20"
                                 >
-                                    Get Started <span className="material-icons-round">arrow_forward</span>
+                                    View Projects <span className="material-icons-round">arrow_forward</span>
                                 </motion.button>
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => navigate('/dashboard/guidelines')}
-                                    className="bg-white/60 dark:bg-white/10 backdrop-blur-xl text-emerald-900 dark:text-white px-8 py-4 rounded-2xl font-extrabold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer border border-emerald-200 dark:border-white/20 hover:border-primary dark:hover:border-primary"
+                                    onClick={() => navigate('/contact')}
+                                    className="bg-white/60 dark:bg-white/10 backdrop-blur-xl text-emerald-900 dark:text-white px-8 py-4 rounded-2xl font-extrabold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer border border-emerald-200 dark:border-white/20 hover:border-cyan-400 dark:hover:border-cyan-400"
                                 >
-                                    Learn More <span className="material-icons-round">menu_book</span>
+                                    Contact Me <span className="material-icons-round">mail</span>
                                 </motion.button>
                             </motion.div>
                         </motion.div>

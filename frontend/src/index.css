@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Sacramento&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -14,6 +15,73 @@
   --font-sans: "Public Sans", sans-serif;
   /* Set as default sans too as per example body style */
 }
+
+/* Neon Styles */
+.neon-hero-container {
+    background-color: #0B0E14;
+}
+
+.font-neon-sans {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.font-neon-script {
+    font-family: 'Sacramento', cursive;
+}
+
+.neon-cyan {
+    color: #AEEFFF;
+    text-shadow: 0 0 5px #FFF, 0 0 15px #00E5FF, 0 0 30px #00E5FF;
+}
+
+.neon-pink {
+    color: #FF80FF;
+    text-shadow: 0 0 5px #FFF, 0 0 15px #FF00FF, 0 0 30px #FF00FF;
+}
+
+/* Animations */
+@keyframes flicker-on-cyan {
+    0% { opacity: 0; text-shadow: none; }
+    2% { opacity: 1; text-shadow: 0 0 5px #FFF, 0 0 15px #00E5FF; } /* ~50ms */
+    4% { opacity: 0; text-shadow: none; } /* ~100ms */
+    6% { opacity: 1; text-shadow: 0 0 5px #FFF, 0 0 15px #00E5FF, 0 0 30px #00E5FF; } /* ~150ms */
+    100% { opacity: 1; text-shadow: 0 0 5px #FFF, 0 0 15px #00E5FF, 0 0 30px #00E5FF; }
+}
+
+@keyframes flicker-on-pink {
+    0% { opacity: 0; text-shadow: none; }
+    2% { opacity: 1; text-shadow: 0 0 5px #FFF, 0 0 15px #FF00FF; }
+    4% { opacity: 0; text-shadow: none; }
+    6% { opacity: 1; text-shadow: 0 0 5px #FFF, 0 0 15px #FF00FF, 0 0 30px #FF00FF; }
+    100% { opacity: 1; text-shadow: 0 0 5px #FFF, 0 0 15px #FF00FF, 0 0 30px #FF00FF; }
+}
+
+@keyframes pulse-glow-cyan {
+    0%, 100% { filter: drop-shadow(0 0 10px #00E5FF); }
+    50% { filter: drop-shadow(0 0 20px #00E5FF); }
+}
+
+@keyframes pulse-glow-pink {
+    0%, 100% { filter: drop-shadow(0 0 10px #FF00FF); }
+    50% { filter: drop-shadow(0 0 20px #FF00FF); }
+}
+
+/* User's "Flicker (Randomized)" for the cyan text main loop provided in prompt */
+@keyframes flicker-cyan-loop {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    text-shadow: 0 0 5px #FFF, 0 0 15px #00E5FF, 0 0 30px #00E5FF;
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+    opacity: 0.3;
+  }
+}
+
+.animate-flicker-cyan-loop {
+    animation: flicker-cyan-loop 3s infinite;
+}
+
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
