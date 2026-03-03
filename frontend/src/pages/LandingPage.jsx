@@ -93,63 +93,36 @@ const LandingPage = () => {
 
   return (
     <div className="font-display bg-background-light dark:bg-emerald-950 text-emerald-950 dark:text-emerald-50 selection:bg-primary/30 overflow-hidden transition-colors duration-500">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background-light/90 dark:bg-emerald-950/90 backdrop-blur-xl border-b border-emerald-900/10 dark:border-white/10 transition-colors duration-500">
+      {/* Navigation - Borderless and Center Aligned */}
+      <nav className="absolute top-4 sm:top-6 w-full z-50 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14 sm:h-20 items-center">
+          <div className="flex justify-center h-14 sm:h-20 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3 group cursor-pointer"
-            >
-              <img
-                src="/logo.jpg"
-                alt="Logo"
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-xl transition-transform group-hover:scale-110"
-              />
-              <span className="text-base sm:text-xl font-bold tracking-tight text-emerald-900 dark:text-white group-hover:text-primary transition-colors duration-500">
-                Recycle<span className="text-primary">Now</span>
-              </span>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="hidden md:flex items-center space-x-8"
+              className="flex items-center gap-6 sm:gap-10"
             >
               <a
                 href="#"
-                className="text-emerald-800 dark:text-emerald-100/70 hover:text-primary dark:hover:text-primary transition-colors duration-500 font-bold text-sm uppercase tracking-wider"
+                className="text-emerald-800 dark:text-emerald-100/70 hover:text-primary dark:hover:text-primary transition-colors duration-500 font-bold text-sm sm:text-base uppercase tracking-wider"
               >
-                Services
+                Home
               </a>
               <a
-                href="#"
-                className="text-emerald-800 dark:text-emerald-100/70 hover:text-primary dark:hover:text-primary transition-colors duration-500 font-bold text-sm uppercase tracking-wider"
+                href="#projects"
+                className="text-emerald-800 dark:text-emerald-100/70 hover:text-primary dark:hover:text-primary transition-colors duration-500 font-bold text-sm sm:text-base uppercase tracking-wider"
               >
-                Impact
+                Projects
               </a>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-4"
-            >
-              <DayNightToggle isDark={isDark} onToggle={toggleDarkMode} />
-              <button
-                onClick={() => navigate("/login")}
-                className="text-emerald-800 dark:text-emerald-200 font-bold hover:text-primary transition-colors duration-500 cursor-pointer text-sm sm:text-base"
+              <a
+                href="#contact"
+                className="text-emerald-800 dark:text-emerald-100/70 hover:text-primary dark:hover:text-primary transition-colors duration-500 font-bold text-sm sm:text-base uppercase tracking-wider"
               >
-                Login
-              </button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate("/signup")}
-                className="bg-primary text-emerald-950 px-3 py-2 sm:px-6 sm:py-2.5 rounded-xl font-bold text-sm sm:text-base hover:shadow-lg hover:shadow-primary/40 transition-all cursor-pointer border border-primary/50"
-              >
-                Get Started
-              </motion.button>
+                Contact
+              </a>
+              <div className="transform scale-[0.65] origin-center -ml-2 sm:-ml-4">
+                <DayNightToggle isDark={isDark} onToggle={toggleDarkMode} />
+              </div>
             </motion.div>
           </div>
         </div>
