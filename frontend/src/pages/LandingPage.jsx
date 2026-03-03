@@ -6,6 +6,8 @@ import DayNightToggle from '../components/DayNightToggle';
 
 const NeonSequence = () => {
     const [animationState, setAnimationState] = React.useState('initial');
+    const fullSubtitle = 'Welcome to my portfolio';
+    const [typedSubtitle, setTypedSubtitle] = React.useState('');
 
     React.useEffect(() => {
         let timers = [];
@@ -22,6 +24,27 @@ const NeonSequence = () => {
         return () => timers.forEach(clearTimeout);
     }, []);
 
+    React.useEffect(() => {
+        if (animationState !== 'phase2') {
+            if (animationState === 'pulse') {
+                setTypedSubtitle(fullSubtitle);
+            } else {
+                setTypedSubtitle('');
+            }
+            return;
+        }
+
+        let index = 0;
+        setTypedSubtitle('');
+        const typeTimer = setInterval(() => {
+            index += 1;
+            setTypedSubtitle(fullSubtitle.slice(0, index));
+            if (index >= fullSubtitle.length) clearInterval(typeTimer);
+        }, 70);
+
+        return () => clearInterval(typeTimer);
+    }, [animationState]);
+
     return (
         <div className="relative z-10 mb-10 w-full group">
             <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-pink-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
@@ -32,10 +55,8 @@ const NeonSequence = () => {
                         I AM SKY
                     </h1>
                     <h2 className={`font-neon-script text-3xl sm:text-5xl transition-all duration-300 ${(animationState === 'initial' || animationState === 'phase1') ? 'opacity-0' : ''} ${(animationState === 'phase2' || animationState === 'pulse') ? 'neon-pink' : ''} ${animationState === 'pulse' ? 'animate-pulse-pink' : ''} ${animationState === 'glitch' ? 'opacity-0 scale-95 duration-100' : ''} ${animationState === 'dark' ? 'opacity-0' : ''}`}>
-                        <span
-                            className={`neon-writing inline-block align-top ${animationState === 'phase2' ? 'animate-neon-write-pink' : ''} ${animationState === 'pulse' ? 'neon-writing-done' : ''}`}
-                        >
-                            Welcome to my portfolio
+                        <span className={`${animationState === 'phase2' ? 'typed-caret-pink' : ''}`}>
+                            {typedSubtitle}
                         </span>
                     </h2>
                 </div>
@@ -125,7 +146,7 @@ const LandingPage = () => {
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                                 </span>
-                                KITA_HACK 2026 Winner
+                                MY PORTFOLIO
                             </motion.div>
                             <NeonSequence />
                             <motion.p variants={fadeUp} className="text-lg text-emerald-700 dark:text-emerald-100/70 mb-10 leading-relaxed font-medium transition-colors duration-500">
