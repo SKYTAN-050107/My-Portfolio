@@ -3,93 +3,71 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-kita-green: #10b981;
-  --color-kita-blue: #3b82f6;
+  /* Monochrome Palette */
+  --color-primary: #000000;      /* Black in Light Mode */
+  --color-primary-dark: #ffffff; /* White in Dark Mode */
+  
+  --color-background-light: #ffffff;
+  --color-background-dark: #000000; /* Pure Black */
+  
+  /* Accents */
+  --color-accent-gray: #71717a; /* Zinc 500 */
+  --color-surface-light: #f4f4f5; /* Zinc 100 */
+  --color-surface-dark: #18181b;  /* Zinc 900 */
 
-  /* Landing Page Theme */
-  --color-primary: #13ec13;
-  --color-background-light: #f6f8f6;
-  --color-background-dark: #102210;
   --font-display: "Public Sans", sans-serif;
   --font-sans: "Public Sans", sans-serif;
-  /* Set as default sans too as per example body style */
 }
 
-@keyframes neon-edge-trace {
-  0% {
-    filter: 
-      drop-shadow(0 -8px 4px #facc15)
-      drop-shadow(0 -8px 8px #f97316)
-      drop-shadow(0 -8px 0px transparent);
-  }
-  12.5% {
-    filter: 
-      drop-shadow(6px -6px 4px #facc15)
-      drop-shadow(6px -6px 8px #f97316);
-  }
-  25% {
-    filter: 
-      drop-shadow(8px 0px 4px #facc15)
-      drop-shadow(8px 0px 8px #f97316);
-  }
-  37.5% {
-    filter: 
-      drop-shadow(6px 6px 4px #facc15)
-      drop-shadow(6px 6px 8px #f97316);
-  }
-  50% {
-    filter: 
-      drop-shadow(0px 8px 4px #facc15)
-      drop-shadow(0px 8px 8px #f97316);
-  }
-  62.5% {
-    filter: 
-      drop-shadow(-6px 6px 4px #facc15)
-      drop-shadow(-6px 6px 8px #f97316);
-  }
-  75% {
-    filter: 
-      drop-shadow(-8px 0px 4px #facc15)
-      drop-shadow(-8px 0px 8px #f97316);
-  }
-  87.5% {
-    filter: 
-      drop-shadow(-6px -6px 4px #facc15)
-      drop-shadow(-6px -6px 8px #f97316);
-  }
-  100% {
-    filter: 
-      drop-shadow(0 -8px 4px #facc15)
-      drop-shadow(0 -8px 8px #f97316);
-  }
+/* Base Styles */
+body {
+  background-color: var(--color-background-light);
+  color: var(--color-primary);
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-/* Custom scrollbar */
+.dark body {
+  background-color: var(--color-background-dark);
+  color: var(--color-primary-dark);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #d4d4d8; /* Zinc 300 */
   border-radius: 4px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #064e3b;
-}
-
 .dark ::-webkit-scrollbar-thumb {
-  background: #10b981;
+  background: #3f3f46; /* Zinc 700 */
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #059669;
+/* Neon/Glow Effects converted to Monochrome Shadows */
+.neon-hero-container {
+  box-shadow: 0 0 40px -10px rgba(0,0,0,0.1);
+}
+.dark .neon-hero-container {
+  box-shadow: 0 0 40px -10px rgba(255,255,255,0.1);
+}
+
+/* Text Selection */
+::selection {
+  background-color: #000;
+  color: #fff;
+}
+.dark ::selection {
+  background-color: #fff;
+  color: #000;
+}
+
+@keyframes neon-edge-trace {
+    /* Kept empty or minimal since we are moving away from colored neon, 
+       but keeping the keyframe definition prevents build errors if referenced elsewhere 
+    */
+    0%, 100% { box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    50% { box-shadow: 0 0 15px rgba(0,0,0,0.2); }
 }
