@@ -17,7 +17,9 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
 
-    let raf;
+    let raf = 0;
+    let isVisible = true;
+    let isInViewport = true;
     let width = 0;
     let height = 0;
     let particles = [];
@@ -40,18 +42,23 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
-      r: Math.random() * 2.5 + 1.5, // Increased from (1.5 + 0.5) so dots are larger
-    }));
-  };
+        r: Math.random() * 2.5 + 1.5,
+      }));
+    };
 
-  const draw = () => {
-    ctx.clearRect(0, 0, width, height);
-    const isDark = document.documentElement.classList.contains("dark");
-    const dotColor = isDark ? "rgba(255,255,255," : "rgba(0,0,0,";
-    const lineColor = isDark ? "rgba(255,255,255," : "rgba(0,0,0,";
-    const connectDist = 120;
+    const draw = () => {
+      if (!isVisible || !isInViewport) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
 
-    for (let i = 0; i < particles.length; i++) {
+      ctx.clearRect(0, 0, width, height);
+      const isDark = document.documentElement.classList.contains("dark");
+      const dotColor = isDark ? "rgba(255,255,255," : "rgba(0,0,0,";
+      const lineColor = isDark ? "rgba(255,255,255," : "rgba(0,0,0,";
+      const connectDist = 120;
+
+      for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
@@ -84,13 +91,28 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
       raf = requestAnimationFrame(draw);
     };
 
+    const handleVisibilityChange = () => {
+      isVisible = !document.hidden;
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewport = entry.isIntersecting;
+      },
+      { threshold: 0.01 }
+    );
+
     init();
+    observer.observe(canvas);
     raf = requestAnimationFrame(draw);
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      observer.disconnect();
     };
   }, [particleCount]);
 

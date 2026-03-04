@@ -17,7 +17,9 @@ export default function MatrixRain({ fontSize = 12, className = "" }) {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
 
-    let raf;
+    let raf = 0;
+    let isVisible = true;
+    let isInViewport = true;
     let columns = 0;
     let drops = [];
     let width = 0;
@@ -44,6 +46,11 @@ export default function MatrixRain({ fontSize = 12, className = "" }) {
     const interval = 50; // ms between frames ≈ 20fps (cheap)
 
     const draw = (now) => {
+      if (!isVisible || !isInViewport) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+
       raf = requestAnimationFrame(draw);
       if (now - lastTime < interval) return;
       lastTime = now;
@@ -68,12 +75,28 @@ export default function MatrixRain({ fontSize = 12, className = "" }) {
       }
     };
 
+    const handleVisibilityChange = () => {
+      isVisible = !document.hidden;
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewport = entry.isIntersecting;
+      },
+      { threshold: 0.01 }
+    );
+
+    observer.observe(canvas);
+
     raf = requestAnimationFrame(draw);
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      observer.disconnect();
     };
   }, [fontSize]);
 

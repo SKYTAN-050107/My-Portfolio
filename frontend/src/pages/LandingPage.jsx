@@ -7,7 +7,6 @@ import {
   useSpring,
   useVelocity,
   useAnimationFrame,
-  AnimatePresence,
 } from "framer-motion";
 import useDarkMode from "../hooks/useDarkMode";
 import DayNightToggle from "../components/DayNightToggle";
@@ -112,8 +111,11 @@ const ParallaxLayer = ({ children, speed = 0.3, className = "" }) => {
 // Horizontal Marquee — velocity-linked ticker
 // ─────────────────────────────────────────────
 const skills = ["React", "Python", "TypeScript", "Data Viz", "Machine Learning", "UI/UX", "Node.js", "SQL"];
+const repeatedSkills = [...skills, ...skills, ...skills, ...skills];
 
 const VelocityMarquee = ({ baseVelocity = 3 }) => {
+  const containerRef = useRef(null);
+  const isActiveRef = useRef(true);
   const baseX = useMotionValue(0);
   const { scrollY } = useScroll();
   const scrollVelocity = useVelocity(scrollY);
@@ -123,7 +125,33 @@ const VelocityMarquee = ({ baseVelocity = 3 }) => {
   const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
   const directionFactor = useRef(1);
 
+  useEffect(() => {
+    const marqueeEl = containerRef.current;
+    if (!marqueeEl) return;
+
+    const handleVisibilityChange = () => {
+      isActiveRef.current = !document.hidden;
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isActiveRef.current = entry.isIntersecting && !document.hidden;
+      },
+      { threshold: 0.01 }
+    );
+
+    observer.observe(marqueeEl);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   useAnimationFrame((_, delta) => {
+    if (!isActiveRef.current) return;
+
     let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
     if (velocityFactor.get() < 0) directionFactor.current = -1;
     else if (velocityFactor.get() > 0) directionFactor.current = 1;
@@ -131,12 +159,10 @@ const VelocityMarquee = ({ baseVelocity = 3 }) => {
     baseX.set(baseX.get() + moveBy);
   });
 
-  const repeated = [...skills, ...skills, ...skills, ...skills];
-
   return (
-    <div className="overflow-hidden py-3 border-y border-black/8 dark:border-white/8 bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+    <div ref={containerRef} className="overflow-hidden py-3 border-y border-black/8 dark:border-white/8 bg-white/50 dark:bg-black/20 backdrop-blur-sm">
       <motion.div style={{ x }} className="flex whitespace-nowrap gap-0">
-        {repeated.map((skill, i) => (
+        {repeatedSkills.map((skill, i) => (
           <span
             key={i}
             className="inline-block px-6 text-sm font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500"
@@ -250,30 +276,61 @@ const ExpertiseCard = ({ item, index }) => (
 // ─────────────────────────────────────────────
 const ProjectCard = ({ project, index }) => {
   const cardRef = useRef(null);
+  const boundsRef = useRef(null);
+  const frameRef = useRef(0);
+  const latestPointerRef = useRef({ x: 0, y: 0 });
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
   const springX = useSpring(rotateX, { stiffness: 200, damping: 20 });
   const springY = useSpring(rotateY, { stiffness: 200, damping: 20 });
 
-  const handleMouse = (e) => {
+  const measureBounds = () => {
     const el = cardRef.current;
     if (!el) return;
-    const { left, top, width, height } = el.getBoundingClientRect();
-    const cx = left + width / 2;
-    const cy = top + height / 2;
-    rotateX.set(((e.clientY - cy) / height) * -10);
-    rotateY.set(((e.clientX - cx) / width) * 10);
+    boundsRef.current = el.getBoundingClientRect();
+  };
+
+  const applyTilt = () => {
+    frameRef.current = 0;
+    const rect = boundsRef.current;
+    if (!rect) return;
+
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    rotateX.set(((latestPointerRef.current.y - cy) / rect.height) * -10);
+    rotateY.set(((latestPointerRef.current.x - cx) / rect.width) * 10);
+  };
+
+  const handleMouse = (e) => {
+    latestPointerRef.current = { x: e.clientX, y: e.clientY };
+    if (!frameRef.current) {
+      frameRef.current = requestAnimationFrame(applyTilt);
+    }
   };
 
   const handleLeave = () => {
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = 0;
+    }
     rotateX.set(0);
     rotateY.set(0);
   };
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
       <motion.div
         ref={cardRef}
+        onMouseEnter={measureBounds}
+        onFocus={measureBounds}
         onMouseMove={handleMouse}
         onMouseLeave={handleLeave}
         style={{ rotateX: springX, rotateY: springY, transformPerspective: 1000 }}
@@ -330,6 +387,8 @@ const SectionLabel = ({ label }) => (
 const LandingPage = () => {
   const { isDark, toggleDarkMode } = useDarkMode();
   const { scrollY, scrollYProgress } = useScroll();
+  const mouseFrameRef = useRef(0);
+  const latestMouseRef = useRef({ x: 0, y: 0 });
 
   // ── Hero parallax layers (now much more pronounced) ──
   // Deep bg drifts upward slowly
@@ -340,6 +399,10 @@ const LandingPage = () => {
   const heroCardY = useTransform(scrollY, [0, 500], [0, -80]);
   const heroCardOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroCardScale = useTransform(scrollY, [0, 400], [1, 0.96]);
+  const smoothHeroCardY = useSpring(heroCardY, { stiffness: 180, damping: 30, mass: 0.35 });
+  const smoothHeroCardOpacity = useSpring(heroCardOpacity, { stiffness: 220, damping: 35, mass: 0.25 });
+  const smoothHeroCardScale = useSpring(heroCardScale, { stiffness: 200, damping: 32, mass: 0.3 });
+  const scrollHintOpacity = useTransform(scrollY, [0, 120], [1, 0]);
 
   // ── Nav shrink on scroll ──
   const navBg = useTransform(scrollYProgress, [0, 0.05], ["rgba(255,255,255,0)", "rgba(255,255,255,0.85)"]);
@@ -354,12 +417,27 @@ const LandingPage = () => {
   const glowY = useTransform(smoothMY, [-1, 1], [-40, 40]);
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      mouseX.set((e.clientX / window.innerWidth - 0.5) * 2);
-      mouseY.set((e.clientY / window.innerHeight - 0.5) * 2);
+    const applyMouseParallax = () => {
+      mouseFrameRef.current = 0;
+      mouseX.set((latestMouseRef.current.x / window.innerWidth - 0.5) * 2);
+      mouseY.set((latestMouseRef.current.y / window.innerHeight - 0.5) * 2);
     };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+
+    const handleMouseMove = (e) => {
+      latestMouseRef.current = { x: e.clientX, y: e.clientY };
+      if (!mouseFrameRef.current) {
+        mouseFrameRef.current = requestAnimationFrame(applyMouseParallax);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (mouseFrameRef.current) {
+        cancelAnimationFrame(mouseFrameRef.current);
+      }
+    };
   }, [mouseX, mouseY]);
 
   const scrollToSection = (id) => {
@@ -427,25 +505,27 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full">
           {/* Hero card exits upward as user scrolls down */}
           <motion.div
-            style={{ y: heroCardY, opacity: heroCardOpacity, scale: heroCardScale }}
-            className="relative w-full group mx-auto"
+            style={{ y: smoothHeroCardY, opacity: smoothHeroCardOpacity, scale: smoothHeroCardScale }}
+            className="relative w-full group mx-auto transform-gpu will-change-transform"
           >
             {/* Midground blobs — faster parallax for visible depth */}
             <motion.div
               style={{ y: midY, x: glowX }}
-              className="absolute -top-20 -right-20 w-96 h-[32rem] bg-gradient-to-b from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-full blur-[100px] pointer-events-none opacity-60"
+              className="absolute -top-20 -right-20 w-96 h-[32rem] bg-gradient-to-b from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-full blur-[100px] pointer-events-none opacity-60 transform-gpu will-change-transform"
             />
             <motion.div
               style={{ y: midY, x: glowY }}
-              className="absolute -bottom-20 -left-20 w-96 h-[32rem] bg-gradient-to-t from-gray-300 to-gray-200 dark:from-gray-900 dark:to-gray-800 rounded-full blur-[100px] pointer-events-none opacity-60"
+              className="absolute -bottom-20 -left-20 w-96 h-[32rem] bg-gradient-to-t from-gray-300 to-gray-200 dark:from-gray-900 dark:to-gray-800 rounded-full blur-[100px] pointer-events-none opacity-60 transform-gpu will-change-transform"
             />
+
+            <div className="absolute -inset-6 rounded-[3rem] bg-emerald-500/20 blur-3xl pointer-events-none" />
 
             {/* Unified Card */}
             <motion.div
               initial={{ opacity: 0, y: 40, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-2xl shadow-black/10 dark:shadow-white/5 border border-black/5 dark:border-white/10 relative overflow-hidden flex flex-col md:flex-row items-stretch p-0"
+              className="bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-2xl shadow-black/10 dark:shadow-white/5 border border-black/5 dark:border-white/10 relative z-10 overflow-hidden flex flex-col md:flex-row items-stretch p-0"
             >
               <div className="absolute -top-12 -left-12 w-64 h-64 border-[3px] border-emerald-400/30 border-dashed rounded-full pointer-events-none" />
 
@@ -553,7 +633,7 @@ const LandingPage = () => {
 
         {/* Scroll hint — fades out once user scrolls */}
         <motion.div
-          style={{ opacity: useTransform(scrollY, [0, 120], [1, 0]) }}
+          style={{ opacity: scrollHintOpacity }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
         >
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Scroll</span>
