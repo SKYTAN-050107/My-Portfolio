@@ -59,15 +59,11 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
       opacity: 0,
       y: direction === "up" ? 60 : direction === "down" ? -60 : 0,
       x: direction === "left" ? 60 : direction === "right" ? -60 : 0,
-      scale: 0.94,
-      filter: "blur(4px)",
     },
     visible: {
       opacity: 1,
       y: 0,
       x: 0,
-      scale: 1,
-      filter: "blur(0px)",
       transition: {
         duration: 0.75,
         delay,
@@ -249,7 +245,7 @@ const NeonSequence = () => {
 const ExpertiseCard = ({ item, index }) => (
   <ScrollReveal delay={index * 0.08} direction="up">
     <motion.div
-      whileHover={{ y: -8, scale: 1.03, transition: { type: "spring", stiffness: 300, damping: 18 } }}
+      whileHover={{ y: -8, transition: { type: "spring", stiffness: 300, damping: 18 } }}
       className="p-8 rounded-3xl bg-white dark:bg-background-dark border border-black/5 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 transition-colors duration-300 group backdrop-blur-sm h-full"
     >
       <item.icon className="w-10 h-10 mb-6 text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors" strokeWidth={1.5} />
@@ -275,7 +271,7 @@ const ExpertiseCard = ({ item, index }) => (
 // Project Card with scroll-stagger + depth tilt
 // ─────────────────────────────────────────────
 const ProjectCard = ({ project, index }) => {
-  const cardRef = useRef(null);
+  const outerRef = useRef(null);
   const boundsRef = useRef(null);
   const frameRef = useRef(0);
   const latestPointerRef = useRef({ x: 0, y: 0 });
@@ -285,7 +281,7 @@ const ProjectCard = ({ project, index }) => {
   const springY = useSpring(rotateY, { stiffness: 200, damping: 20 });
 
   const measureBounds = () => {
-    const el = cardRef.current;
+    const el = outerRef.current;
     if (!el) return;
     boundsRef.current = el.getBoundingClientRect();
   };
@@ -327,44 +323,48 @@ const ProjectCard = ({ project, index }) => {
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
-      <motion.div
-        ref={cardRef}
+      <div
+        ref={outerRef}
         onMouseEnter={measureBounds}
         onFocus={measureBounds}
         onMouseMove={handleMouse}
         onMouseLeave={handleLeave}
-        style={{ rotateX: springX, rotateY: springY, transformPerspective: 1000 }}
-        whileHover={{ y: -12 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        className="group relative cursor-pointer h-full"
+        className="h-full"
       >
-        <div className="aspect-[4/3] bg-gray-100 dark:bg-surface-dark rounded-2xl overflow-hidden mb-6 border border-black/5 dark:border-white/10">
-          <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-108 transition-transform duration-700 flex items-center justify-center relative overflow-hidden">
-            {/* Shimmer overlay on hover */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-              style={{ skewX: "-20deg" }}
-            />
-            <project.icon className="w-12 h-12 text-gray-300 dark:text-gray-600" strokeWidth={1} />
+        <motion.div
+          style={{ rotateX: springX, rotateY: springY, transformPerspective: 1000 }}
+          whileHover={{ y: -12 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="group relative cursor-pointer h-full"
+        >
+          <div className="aspect-[4/3] bg-gray-100 dark:bg-surface-dark rounded-2xl overflow-hidden mb-6 border border-black/5 dark:border-white/10">
+            <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-108 transition-transform duration-700 flex items-center justify-center relative overflow-hidden">
+              {/* Shimmer overlay on hover */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                style={{ skewX: "-20deg" }}
+              />
+              <project.icon className="w-12 h-12 text-gray-300 dark:text-gray-600" strokeWidth={1} />
+            </div>
           </div>
-        </div>
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-2xl font-bold mb-1 text-black dark:text-white group-hover:underline decoration-2 underline-offset-4">
-              {project.title}
-            </h3>
-            <p className="text-accent-gray text-sm mb-3">{project.category}</p>
-            <p className="text-sm text-gray-500 max-w-xs">{project.description}</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-2xl font-bold mb-1 text-black dark:text-white group-hover:underline decoration-2 underline-offset-4">
+                {project.title}
+              </h3>
+              <p className="text-accent-gray text-sm mb-3">{project.category}</p>
+              <p className="text-sm text-gray-500 max-w-xs">{project.description}</p>
+            </div>
+            <motion.button
+              whileHover={{ rotate: 45, scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors flex-shrink-0"
+            >
+              <span className="material-icons-round text-sm">arrow_outward</span>
+            </motion.button>
           </div>
-          <motion.button
-            whileHover={{ rotate: 45, scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 400 }}
-            className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors flex-shrink-0"
-          >
-            <span className="material-icons-round text-sm">arrow_outward</span>
-          </motion.button>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </ScrollReveal>
   );
 };
@@ -380,6 +380,204 @@ const SectionLabel = ({ label }) => (
     </div>
   </ScrollReveal>
 );
+
+const journeyData = [
+  {
+    year: "2021",
+    phase: "The Spark",
+    title: "Discovered My Passion",
+    description:
+      "Started exploring programming through online courses. Fell in love with the intersection of data and design — building my first visualizations that turned raw numbers into stories.",
+    tags: ["Python", "HTML/CSS", "Data Viz"],
+    icon: "🌱",
+  },
+  {
+    year: "2022–23",
+    phase: "The Build",
+    title: "Levelled Up Fast",
+    description:
+      "Dived deep into full-stack development and machine learning. Built real projects, shipped real code, and learned that the best way to grow is to build something people actually use.",
+    tags: ["React", "Node.js", "ML", "SQL"],
+    icon: "⚡",
+  },
+  {
+    year: "2024→",
+    phase: "The Now",
+    title: "Building With Purpose",
+    description:
+      "Focused on crafting insight-driven products. Every line of code serves a purpose: making complex data simple, interfaces intuitive, and impact measurable.",
+    tags: ["TypeScript", "UI/UX", "AI", "Leadership"],
+    icon: "🚀",
+  },
+];
+
+const JourneyCardInner = ({ item }) => (
+  <motion.div
+    whileHover={{ y: -4 }}
+    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    className="relative bg-white dark:bg-surface-dark border border-black/5 dark:border-white/10 hover:border-emerald-400/40 rounded-2xl p-6 shadow-sm hover:shadow-emerald-500/10 hover:shadow-lg transition-all duration-300 group"
+  >
+    <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+    <div className="flex items-center gap-3 mb-3">
+      <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-500">{item.year}</span>
+      <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
+      <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{item.phase}</span>
+    </div>
+
+    <h3 className="text-xl font-black text-black dark:text-white mb-2 tracking-tight">{item.title}</h3>
+    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-4">{item.description}</p>
+
+    <div className="flex flex-wrap gap-2">
+      {item.tags.map((tag) => (
+        <span
+          key={tag}
+          className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  </motion.div>
+);
+
+const JourneyCard = ({ item, index }) => {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 0.88", "start 0.3"],
+  });
+
+  const isLeft = index % 2 === 0;
+  const cardX = useTransform(scrollYProgress, [0, 1], [isLeft ? -70 : 70, 0]);
+  const cardOpacity = useTransform(scrollYProgress, [0, 0.6], [0, 1]);
+  const dotScale = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
+  const lineH = useTransform(scrollYProgress, [0.2, 1], ["0%", "100%"]);
+  const mobileCardX = useTransform(scrollYProgress, [0, 1], [40, 0]);
+
+  return (
+    <div ref={ref} className="relative flex items-start mb-0">
+      <div className="hidden md:block w-[calc(50%-32px)] pr-8">
+        {isLeft && (
+          <motion.div style={{ x: cardX, opacity: cardOpacity }}>
+            <JourneyCardInner item={item} />
+          </motion.div>
+        )}
+      </div>
+
+      <div className="hidden md:flex flex-col items-center flex-shrink-0 w-16">
+        <motion.div
+          style={{ scale: dotScale }}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/40 flex items-center justify-center text-xl z-10"
+        >
+          {item.icon}
+        </motion.div>
+        {index < journeyData.length - 1 && (
+          <div className="relative w-[2px] h-44 mt-2 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full">
+            <motion.div
+              style={{ height: lineH }}
+              className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-400 to-teal-500"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block w-[calc(50%-32px)] pl-8">
+        {!isLeft && (
+          <motion.div style={{ x: cardX, opacity: cardOpacity }}>
+            <JourneyCardInner item={item} />
+          </motion.div>
+        )}
+      </div>
+
+      <div className="flex md:hidden items-start gap-4 w-full pb-12">
+        <div className="flex flex-col items-center flex-shrink-0">
+          <motion.div
+            style={{ scale: dotScale }}
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/30 flex items-center justify-center text-base z-10"
+          >
+            {item.icon}
+          </motion.div>
+          {index < journeyData.length - 1 && (
+            <div className="relative w-[2px] flex-1 min-h-[180px] mt-2 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full">
+              <motion.div
+                style={{ height: lineH }}
+                className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-400 to-teal-500"
+              />
+            </div>
+          )}
+        </div>
+
+        <motion.div style={{ x: mobileCardX, opacity: cardOpacity }} className="flex-1 pt-1">
+          <JourneyCardInner item={item} />
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+const JourneySection = () => {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "start 0.3"],
+  });
+  const capH = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+  return (
+    <section ref={sectionRef} className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-20">
+          <ScrollReveal>
+            <div className="inline-flex items-center gap-3 mb-6">
+              <div className="w-8 h-px bg-emerald-400" />
+              <span className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-500">My Story</span>
+              <div className="w-8 h-px bg-emerald-400" />
+            </div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.08}>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white mb-4">
+              The Journey
+            </h2>
+          </ScrollReveal>
+          <ScrollReveal delay={0.16}>
+            <p className="text-gray-400 text-lg font-light max-w-md mx-auto">
+              Three chapters that shaped how I think, build, and create.
+            </p>
+          </ScrollReveal>
+        </div>
+
+        <div className="relative">
+          <div className="flex justify-center mb-0">
+            <div className="relative w-[2px] h-12 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full">
+              <motion.div style={{ height: capH }} className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-400 to-teal-500" />
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center">
+            {journeyData.map((item, i) => (
+              <JourneyCard key={i} item={item} index={i} />
+            ))}
+          </div>
+
+          <ScrollReveal delay={0.1}>
+            <div className="flex flex-col items-center mt-2">
+              <div className="w-[2px] h-8 bg-gradient-to-b from-teal-500 to-transparent" />
+              <motion.div
+                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="w-3 h-3 rounded-full bg-emerald-400 shadow-md shadow-emerald-400/60"
+              />
+              <span className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-500">Present</span>
+            </div>
+          </ScrollReveal>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // ─────────────────────────────────────────────
 // Main Landing Page
@@ -658,6 +856,8 @@ const LandingPage = () => {
 
       {/* ── Velocity Marquee between sections ── */}
       <VelocityMarquee baseVelocity={2.5} />
+
+      <JourneySection />
 
       <Divider />
 
