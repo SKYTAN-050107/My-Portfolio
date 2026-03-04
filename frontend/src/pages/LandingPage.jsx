@@ -82,7 +82,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
+      viewport={{ once: false, margin: "-80px" }}
       variants={variants}
     >
       {children}
@@ -234,7 +234,7 @@ const ExpertiseCard = ({ item, index }) => (
           className="text-3xl font-black text-black dark:text-white"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
+          viewport={{ once: false }}
           transition={{ delay: 0.3 + index * 0.08 }}
         >
           {item.stat}
@@ -388,7 +388,7 @@ const LandingPage = () => {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-center items-center h-16">
+          <div className="flex justify-center items-center h-26 pt-4">
             <motion.div
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -588,7 +588,7 @@ const LandingPage = () => {
               <motion.div
                 className="h-1 w-0 bg-black dark:bg-white mt-4"
                 whileInView={{ width: 80 }}
-                viewport={{ once: true }}
+                viewport={{ once: false }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               />
             </ScrollReveal>
@@ -628,7 +628,7 @@ const LandingPage = () => {
                 <motion.div
                   className="h-1 w-0 bg-black dark:bg-white mt-4"
                   whileInView={{ width: 80 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: false }}
                   transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 />
               </ScrollReveal>
@@ -675,7 +675,7 @@ const LandingPage = () => {
             <motion.h2
               initial={{ y: "100%", opacity: 0 }}
               whileInView={{ y: 0, opacity: 0.08 }}
-              viewport={{ once: true }}
+              viewport={{ once: false }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter select-none text-black dark:text-white"
             >
