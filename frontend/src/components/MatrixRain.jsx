@@ -1,0 +1,86 @@
+import { useEffect, useRef } from "react";
+
+/**
+ * Monochrome matrix rain canvas.
+ * Renders falling characters behind a section.
+ * Uses black characters on light mode, white on dark mode.
+ *
+ * Props:
+ *   fontSize  — character size in px (default 12)
+ *   className — extra classes for wrapping canvas
+ */
+export default function MatrixRain({ fontSize = 12, className = "" }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    let raf;
+    let columns = 0;
+    let drops = [];
+    let width = 0;
+    let height = 0;
+
+    const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+
+    const resize = () => {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = width * devicePixelRatio;
+      canvas.height = height * devicePixelRatio;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      columns = Math.floor(width / fontSize);
+      drops = new Array(columns).fill(1).map(() => Math.random() * -100);
+    };
+
+    resize();
+
+    let lastTime = 0;
+    const interval = 50; // ms between frames ≈ 20fps (cheap)
+
+    const draw = (now) => {
+      raf = requestAnimationFrame(draw);
+      if (now - lastTime < interval) return;
+      lastTime = now;
+
+      const isDark = document.documentElement.classList.contains("dark");
+
+      // Semi-transparent overlay for trail effect
+      ctx.fillStyle = isDark ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.25)";
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < columns; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i] += 1;
+      }
+    };
+
+    raf = requestAnimationFrame(draw);
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, [fontSize]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={`matrix-canvas ${className}`}
+    />
+  );
+}
