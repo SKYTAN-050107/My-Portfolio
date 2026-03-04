@@ -77,7 +77,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, margin: "-80px" }}
+      viewport={{ once: false, margin: "-10% 0px -10% 0px", amount: 0.55 }}
       variants={variants}
     >
       {children}
@@ -389,7 +389,6 @@ const journeyData = [
     description:
       "Started exploring programming through online courses. Fell in love with the intersection of data and design — building my first visualizations that turned raw numbers into stories.",
     tags: ["Python", "HTML/CSS", "Data Viz"],
-    icon: "🌱",
   },
   {
     year: "2022–23",
@@ -398,7 +397,6 @@ const journeyData = [
     description:
       "Dived deep into full-stack development and machine learning. Built real projects, shipped real code, and learned that the best way to grow is to build something people actually use.",
     tags: ["React", "Node.js", "ML", "SQL"],
-    icon: "⚡",
   },
   {
     year: "2024→",
@@ -407,7 +405,6 @@ const journeyData = [
     description:
       "Focused on crafting insight-driven products. Every line of code serves a purpose: making complex data simple, interfaces intuitive, and impact measurable.",
     tags: ["TypeScript", "UI/UX", "AI", "Leadership"],
-    icon: "🚀",
   },
 ];
 
@@ -445,15 +442,20 @@ const JourneyCard = ({ item, index }) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start 0.88", "start 0.3"],
+    offset: ["start 0.95", "center 0.45"],
   });
 
   const isLeft = index % 2 === 0;
-  const cardX = useTransform(scrollYProgress, [0, 1], [isLeft ? -70 : 70, 0]);
-  const cardOpacity = useTransform(scrollYProgress, [0, 0.6], [0, 1]);
-  const dotScale = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
-  const lineH = useTransform(scrollYProgress, [0.2, 1], ["0%", "100%"]);
-  const mobileCardX = useTransform(scrollYProgress, [0, 1], [40, 0]);
+  const cardXRaw = useTransform(scrollYProgress, [0.18, 0.9], [isLeft ? -56 : 56, 0]);
+  const cardOpacityRaw = useTransform(scrollYProgress, [0.12, 0.7], [0, 1]);
+  const lineProgressRaw = useTransform(scrollYProgress, [0.02, 0.98], [0, 1]);
+  const mobileCardXRaw = useTransform(scrollYProgress, [0.2, 0.9], [40, 0]);
+
+  const cardX = useSpring(cardXRaw, { stiffness: 120, damping: 24, mass: 0.45 });
+  const cardOpacity = useSpring(cardOpacityRaw, { stiffness: 140, damping: 26, mass: 0.4 });
+  const lineProgress = useSpring(lineProgressRaw, { stiffness: 132, damping: 26, mass: 0.44 });
+  const lineHeight = useTransform(lineProgress, [0, 1], ["0%", "100%"]);
+  const mobileCardX = useSpring(mobileCardXRaw, { stiffness: 120, damping: 24, mass: 0.45 });
 
   return (
     <div ref={ref} className="relative flex items-start mb-0">
@@ -466,17 +468,11 @@ const JourneyCard = ({ item, index }) => {
       </div>
 
       <div className="hidden md:flex flex-col items-center flex-shrink-0 w-16">
-        <motion.div
-          style={{ scale: dotScale }}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/40 flex items-center justify-center text-xl z-10"
-        >
-          {item.icon}
-        </motion.div>
         {index < journeyData.length - 1 && (
-          <div className="relative w-[2px] h-44 mt-2 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full">
+          <div className="relative w-[3px] h-44 bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
             <motion.div
-              style={{ height: lineH }}
-              className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-400 to-teal-500"
+              style={{ height: lineHeight }}
+              className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]"
             />
           </div>
         )}
@@ -492,17 +488,11 @@ const JourneyCard = ({ item, index }) => {
 
       <div className="flex md:hidden items-start gap-4 w-full pb-12">
         <div className="flex flex-col items-center flex-shrink-0">
-          <motion.div
-            style={{ scale: dotScale }}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/30 flex items-center justify-center text-base z-10"
-          >
-            {item.icon}
-          </motion.div>
           {index < journeyData.length - 1 && (
-            <div className="relative w-[2px] flex-1 min-h-[180px] mt-2 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full">
+            <div className="relative w-[3px] flex-1 min-h-[180px] bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
               <motion.div
-                style={{ height: lineH }}
-                className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-400 to-teal-500"
+                style={{ height: lineHeight }}
+                className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]"
               />
             </div>
           )}
@@ -522,7 +512,9 @@ const JourneySection = () => {
     target: sectionRef,
     offset: ["start end", "start 0.3"],
   });
-  const capH = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const capProgressRaw = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const capProgress = useSpring(capProgressRaw, { stiffness: 132, damping: 26, mass: 0.44 });
+  const capHeight = useTransform(capProgress, [0, 1], ["0%", "100%"]);
 
   return (
     <section ref={sectionRef} className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
@@ -551,8 +543,8 @@ const JourneySection = () => {
 
         <div className="relative">
           <div className="flex justify-center mb-0">
-            <div className="relative w-[2px] h-12 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full">
-              <motion.div style={{ height: capH }} className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-400 to-teal-500" />
+            <div className="relative w-[3px] h-12 bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
+              <motion.div style={{ height: capHeight }} className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]" />
             </div>
           </div>
 
@@ -565,11 +557,6 @@ const JourneySection = () => {
           <ScrollReveal delay={0.1}>
             <div className="flex flex-col items-center mt-2">
               <div className="w-[2px] h-8 bg-gradient-to-b from-teal-500 to-transparent" />
-              <motion.div
-                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-3 h-3 rounded-full bg-emerald-400 shadow-md shadow-emerald-400/60"
-              />
               <span className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-500">Present</span>
             </div>
           </ScrollReveal>
