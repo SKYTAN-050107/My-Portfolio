@@ -2,8 +2,8 @@ import { Code, Server, Layout, Smartphone, Globe, Layers, Database } from "lucid
 
 export const heroContent = {
   name: "SKY",
-  title: "Full Stack Engineer",
-  tagline: "Architecting Digital Minimalism.",
+  title: "Undergraduate student of Universiti Malaya, specializing in Data Science.",
+  tagline: " Code with purpose. Build with impact.",
 };
 
 export const expertise = [

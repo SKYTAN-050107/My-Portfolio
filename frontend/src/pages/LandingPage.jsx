@@ -8,7 +8,8 @@ import { heroContent, expertise, projects } from "../data/portfolio";
 // --- Monochrome Glitch Component ---
 const NeonSequence = () => {
   const [animationState, setAnimationState] = React.useState("initial");
-  const fullSubtitle = heroContent.tagline;
+  const fullSubtitle = heroContent?.tagline ?? "";
+  const welcomingText = (heroContent?.welcoming ?? "").trim();
   const [typedSubtitle, setTypedSubtitle] = React.useState("");
 
   React.useEffect(() => {
@@ -45,7 +46,7 @@ const NeonSequence = () => {
     }, 50);
 
     return () => clearInterval(typeTimer);
-  }, [animationState]);
+  }, [animationState, fullSubtitle]);
 
   return (
     <div className="relative z-10 mb-10 w-full group">
@@ -58,10 +59,10 @@ const NeonSequence = () => {
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/5 dark:bg-white/5 rounded-full blur-[80px] transition-opacity duration-1000 ${animationState === "pulse" ? "opacity-30" : "opacity-0"}`}></div>
         
         <div className="flex flex-col justify-center min-h-[180px] z-20 relative text-center sm:text-left">
-          <h1 className={`font-display text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-4 transition-all duration-300 text-black dark:text-white 
-            ${animationState === "glitch" ? "opacity-50 blur-[1px] translate-x-1" : ""}
+          <h1 className={`font-display text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tighter mb-4 transition-all duration-300 text-black dark:text-white 
+            ${animationState === "glitch" ? "blur-[1px] translate-x-1" : ""}
           `}>
-            {heroContent.name}
+            {welcomingText || "Welcome to my portfolio!"}
           </h1>
           
           <h2 className="font-sans text-xl sm:text-3xl text-accent-gray tracking-wide h-10">
@@ -70,7 +71,7 @@ const NeonSequence = () => {
                 {typedSubtitle}
               </span>
             ) : (
-              <span className="opacity-0">{heroContent.tagline}</span>
+              <span className="opacity-0">{heroContent?.tagline ?? ""}</span>
             )}
           </h2>
         </div>
@@ -100,16 +101,16 @@ const LandingPage = () => {
       {/* Navigation */}
       <nav className="absolute top-0 w-full z-50 pt-6">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="text-xl font-black tracking-tighter">SKY.DEV</div>
+          <div className="flex justify-center items-center h-16">
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-8"
             >
-              <a href="#projects" className="hidden sm:block text-sm font-bold uppercase tracking-widest hover:text-accent-gray transition-colors">Work</a>
-              <a href="#contact" className="hidden sm:block text-sm font-bold uppercase tracking-widest hover:text-accent-gray transition-colors">Contact</a>
-              <div className="scale-75 origin-right">
+              <a href="#" className="text-sm font-bold uppercase tracking-widest hover:text-accent-gray transition-colors">Home</a>
+              <a href="#projects" className="text-sm font-bold uppercase tracking-widest hover:text-accent-gray transition-colors">Work</a>
+              <a href="#contact" className="text-sm font-bold uppercase tracking-widest hover:text-accent-gray transition-colors">Contact</a>
+              <div className="scale-75 origin-center">
                 <DayNightToggle isDark={isDark} onToggle={toggleDarkMode} />
               </div>
             </motion.div>
@@ -126,14 +127,14 @@ const LandingPage = () => {
             <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="max-w-2xl">
               <motion.div variants={fadeUp} className="inline-block mb-6">
                  <span className="py-1 px-3 border border-black/10 dark:border-white/20 rounded-full text-xs font-bold uppercase tracking-widest bg-white dark:bg-white/5 backdrop-blur-sm">
-                   Based in Malaysia
+                   Welcome to My Portfolio
                  </span>
               </motion.div>
               
               <NeonSequence />
               
               <motion.p variants={fadeUp} className="text-xl md:text-2xl text-accent-gray font-light mb-10 leading-relaxed max-w-lg">
-                Full-stack engineer specializing in scalable architecture and fluid user interactions.
+                Insight-driven. Impact-focused.
               </motion.p>
               
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4">
@@ -146,33 +147,82 @@ const LandingPage = () => {
               </motion.div>
             </motion.div>
 
-            {/* Right Column: Profile Image */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mt-16 lg:mt-0 relative hidden lg:block"
+            {/* Right Column: Profile Image (Restored Dashboard Layout) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1, type: "spring" }}
+              className="mt-16 lg:mt-0 relative"
             >
-              <div className="relative z-10 bg-white dark:bg-surface-dark p-2 rounded-[2rem] shadow-2xl shadow-black/5 dark:shadow-white/5 border border-black/5 dark:border-white/10 transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                <div className="bg-gray-50 dark:bg-black/50 rounded-[1.8rem] overflow-hidden relative h-[500px] flex items-end justify-center">
-                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-gray-100 via-transparent to-transparent flex items-center justify-center">
-                     {/* Text behind image if needed */}
+              {/* Background Blobs (Monochrome) */}
+              <div className="absolute -top-20 -right-20 w-96 h-96 bg-gray-200 dark:bg-gray-800 rounded-full blur-[100px] pointer-events-none opacity-50"></div>
+              <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-gray-300 dark:bg-gray-900 rounded-full blur-[100px] pointer-events-none opacity-50"></div>
+              
+              <motion.div
+                animate={{ y: [-10, 10, -10] }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative transition-colors duration-500"
+              >
+                <div className="bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-2xl shadow-black/10 dark:shadow-white/5 border border-black/5 dark:border-white/10 relative overflow-hidden max-w-md mx-auto flex items-center pr-2">
+                  
+                  {/* Decorative Dashed Circle Top Left (Restored - Gray) */}
+                  <div className="absolute -top-12 -left-12 w-64 h-64 border-[3px] border-gray-300 dark:border-gray-700 border-dashed rounded-full pointer-events-none"></div>
+
+                  {/* Content (Left Side) */}
+                  <div className="flex-1 flex flex-col items-start text-left relative z-20 py-8 pl-8 pr-2">
+                    <h2 className="text-3xl font-black text-black dark:text-white mb-2 tracking-tight">
+                      {heroContent.name}
+                    </h2>
+
+                    <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-medium leading-relaxed mb-6">
+                       I am an {heroContent.title}<br /> 
+                       {heroContent.tagline}
+                    </p>
+
+                    {/* Social Icons (Compressed) */}
+                    <div className="flex items-center gap-3">
+                      {[
+                        { icon: "language", href: "#" },
+                        { icon: "code", href: "#" },
+                        { icon: "camera_alt", href: "#" },
+                        { icon: "play_circle", href: "#" },
+                      ].map((social, i) => (
+                        <a
+                          key={i}
+                          href={social.href}
+                          className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-200 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                        >
+                          <span className="material-icons-round text-base">
+                            {social.icon}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                  <img 
-                    src="/profile.png" 
-                    alt="Sky Tan" 
-                    className="relative z-10 w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-700"
-                    style={{
+
+                  {/* Profile Image (Restored Layout) */}
+                  <div className="relative w-[42%] h-64 flex justify-center items-center mx-auto">
+                    <img
+                      src="/profile.png"
+                      alt="Sky Tan"
+                      className="h-full w-auto object-contain grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
+                      style={{
                         maskImage:
                           "linear-gradient(to bottom, black 85%, transparent 100%)",
                         WebkitMaskImage:
                           "linear-gradient(to bottom, black 85%, transparent 100%)",
                       }}
-                  />
-                  {/* Overlay Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent dark:from-surface-dark to-transparent opacity-20"></div>
+                    />
+                  </div>
+
+                  {/* Bottom Left Dashed decorative (Restored - Gray) */}
+                  <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 border-t-[3px] border-r-[3px] border-gray-300 dark:border-gray-700 border-dashed rounded-tr-[3rem] pointer-events-none opacity-50"></div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -213,7 +263,7 @@ const LandingPage = () => {
       </section>
 
       {/* Selected Projects (Formerly Key Benefits) */}
-      <section className="py-24 relative z-10 bg-background-light dark:bg-background-dark">
+      <section id="projects" className="py-24 relative z-10 bg-background-light dark:bg-background-dark">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
@@ -271,7 +321,7 @@ const LandingPage = () => {
       </section>
 
       {/* Footer / CTA */}
-      <footer className="py-20 border-t border-black/5 dark:border-white/10 text-center bg-surface-light dark:bg-surface-dark">
+      <footer id="contact" className="py-20 border-t border-black/5 dark:border-white/10 text-center bg-surface-light dark:bg-surface-dark">
          <h2 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter opacity-10 mb-10 select-none text-black dark:text-white">GET IN TOUCH</h2>
          <button 
            onClick={() => navigate("/contact")}
