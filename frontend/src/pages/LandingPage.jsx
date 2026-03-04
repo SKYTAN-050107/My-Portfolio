@@ -622,6 +622,15 @@ const LandingPage = () => {
                     >
                       Contact Me
                     </motion.button>
+                    <motion.a
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.97 }}
+                      href="/Resume.pdf"
+                      download
+                      className="px-8 py-3.5 rounded-full font-bold text-lg border border-black/10 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                    >
+                      My Resume
+                    </motion.a>
                   </motion.div>
                 </motion.div>
               </div>
