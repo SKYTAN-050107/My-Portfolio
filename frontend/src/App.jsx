@@ -10,7 +10,7 @@ const App = () => {
   }, []);
 
   if (!done) {
-    return <IntroScreen name="SKY TAN" onComplete={handleIntroComplete} holdAfterMs={2000} />;
+    return <IntroScreen name="SKY TAN" onComplete={handleIntroComplete} />;
   }
 
   return <LandingPage />;

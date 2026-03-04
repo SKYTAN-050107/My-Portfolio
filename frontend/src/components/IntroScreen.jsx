@@ -10,7 +10,6 @@ const T = {
   GLITCH_DURATION:  500,
   CURTAIN_STAGGER:  70,
   PANEL_DURATION:   700,
-  HOLD_AFTER_MS:   2000,
 };
 
 const PANEL_COUNT = 8;
@@ -136,12 +135,12 @@ const CounterDisplay = ({ progress }) => {
 // ─────────────────────────────────────────────────────────────
 // IntroScreen
 // ─────────────────────────────────────────────────────────────
-const IntroScreen = ({ onComplete, name = NAME, holdAfterMs = T.HOLD_AFTER_MS }) => {
+const IntroScreen = ({ onComplete, name = NAME }) => {
   // Phases:
   // "loading"  → counter 0→100 + progress bar
   // "explode"  → name blasts in, particles burst
   // "glitch"   → RGB split on name
-  // "curtain"  → panels lift to reveal landing page
+  // "curtain"  → panels lift out
   // "done"     → unmount
   const [phase, setPhase] = useState("loading");
   const [progress, setProgress] = useState(0);
@@ -231,32 +230,25 @@ const IntroScreen = ({ onComplete, name = NAME, holdAfterMs = T.HOLD_AFTER_MS })
   useEffect(() => {
     if (phase !== "curtain") return;
 
+    const totalCurtain = (PANEL_COUNT - 1) * T.CURTAIN_STAGGER + T.PANEL_DURATION + 80;
     const timer = setTimeout(() => {
       setPhase("done");
       onComplete?.();
-    }, PANEL_COUNT * T.CURTAIN_STAGGER + T.PANEL_DURATION + holdAfterMs);
+    }, totalCurtain);
 
     return () => clearTimeout(timer);
-  }, [phase, onComplete, holdAfterMs]);
+  }, [phase, onComplete]);
 
   if (phase === "done") return null;
 
   const isCurtain = phase === "curtain";
-  const showName = phase === "explode" || phase === "glitch" || phase === "curtain";
+  const showName = phase === "explode" || phase === "glitch";
 
   return (
     <div
       className="fixed inset-0 overflow-hidden"
       style={{ zIndex: 9999, pointerEvents: "all" }}
     >
-      {/* ══════════════════════════════════════════════
-          CURTAIN PANELS
-          FIX: zIndex 15 — sits above bg (z-20 content)
-          only during lift. bg content always visible.
-          Actually panels need to be ABOVE content so
-          they cover it and then lift away.
-          Stack order: bg=1, content=20, panels=30
-      ══════════════════════════════════════════════ */}
       {isCurtain &&
         Array.from({ length: PANEL_COUNT }).map((_, i) => {
           const panelW = 100 / PANEL_COUNT;
@@ -270,8 +262,8 @@ const IntroScreen = ({ onComplete, name = NAME, holdAfterMs = T.HOLD_AFTER_MS })
                 background: i % 2 === 0 ? "#080808" : "#0c0c0c",
                 zIndex: 30,
               }}
-              initial={{ y: 0 }}
-              animate={{ y: "-102%" }}
+              initial={{ y: 0, filter: "blur(0px)" }}
+              animate={{ y: "-102%", filter: ["blur(0px)", "blur(5px)", "blur(0px)"] }}
               transition={{
                 duration: T.PANEL_DURATION / 1000,
                 delay: i * (T.CURTAIN_STAGGER / 1000),
@@ -413,7 +405,7 @@ const IntroScreen = ({ onComplete, name = NAME, holdAfterMs = T.HOLD_AFTER_MS })
             style={{ zIndex: 20, x: smX, y: smY }}
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, scale: 1.06, y: -20, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }}
           >
             {/* Particle burst layer */}
             <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ zIndex: 21 }}>
