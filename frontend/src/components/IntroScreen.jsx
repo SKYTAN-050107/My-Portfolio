@@ -8,8 +8,8 @@ const T = {
   COUNTER_DURATION: 1800,
   NAME_HOLD:        600,
   GLITCH_DURATION:  500,
-  CURTAIN_STAGGER:  70,
-  PANEL_DURATION:   700,
+  CURTAIN_STAGGER:  110,
+  PANEL_DURATION:   1200,
 };
 
 const PANEL_COUNT = 8;
@@ -230,7 +230,7 @@ const IntroScreen = ({ onComplete, name = NAME }) => {
   useEffect(() => {
     if (phase !== "curtain") return;
 
-    const totalCurtain = (PANEL_COUNT - 1) * T.CURTAIN_STAGGER + T.PANEL_DURATION + 80;
+    const totalCurtain = (PANEL_COUNT - 1) * T.CURTAIN_STAGGER + T.PANEL_DURATION + 220;
     const timer = setTimeout(() => {
       setPhase("done");
       onComplete?.();
@@ -293,7 +293,12 @@ const IntroScreen = ({ onComplete, name = NAME }) => {
       ══════════════════════════════════════════════ */}
 
       {/* Solid black background fill */}
-      <div className="absolute inset-0 bg-black" style={{ zIndex: 1 }} />
+      <motion.div
+        className="absolute inset-0 bg-black"
+        style={{ zIndex: 1 }}
+        animate={{ opacity: isCurtain ? 0 : 1 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+      />
 
       {/* Emerald ambient glow */}
       <motion.div
@@ -303,45 +308,51 @@ const IntroScreen = ({ onComplete, name = NAME }) => {
           background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
         }}
         animate={
-          showName
+          isCurtain
+            ? { scale: 1.05, opacity: 0 }
+            : showName
             ? { scale: [1, 1.5, 1.2], opacity: [0.4, 1, 0.7] }
             : { scale: 1, opacity: 0.4 }
         }
-        transition={{ duration: 0.7, ease: "easeOut" }}
+        transition={{ duration: isCurtain ? 0.8 : 0.7, ease: [0.16, 1, 0.3, 1] }}
       />
 
       {/* Subtle emerald grid */}
-      <div
+      <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 3,
-          opacity: 0.03,
           backgroundImage: `
             linear-gradient(rgba(16,185,129,1) 1px, transparent 1px),
             linear-gradient(90deg, rgba(16,185,129,1) 1px, transparent 1px)
           `,
           backgroundSize: "60px 60px",
         }}
+        animate={{ opacity: isCurtain ? 0 : 0.03 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       />
 
       {/* CRT scanlines */}
-      <div
+      <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 25,
-          opacity: 0.025,
           backgroundImage:
             "repeating-linear-gradient(0deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 1px, transparent 1px, transparent 3px)",
         }}
+        animate={{ opacity: isCurtain ? 0 : 0.025 }}
+        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
       />
 
       {/* Vignette */}
-      <div
+      <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 4,
           background: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.7) 100%)",
         }}
+        animate={{ opacity: isCurtain ? 0 : 1 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       />
 
       {/* ── LOADING PHASE ── */}

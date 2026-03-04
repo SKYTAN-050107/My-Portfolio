@@ -9,11 +9,12 @@ const App = () => {
     setDone(true);
   }, []);
 
-  if (!done) {
-    return <IntroScreen name="SKY TAN" onComplete={handleIntroComplete} />;
-  }
-
-  return <LandingPage />;
+  return (
+    <>
+      <LandingPage />
+      {!done && <IntroScreen name="SKY TAN" onComplete={handleIntroComplete} />}
+    </>
+  );
 };
 
 export default App;
