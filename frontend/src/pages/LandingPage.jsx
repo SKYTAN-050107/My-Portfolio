@@ -447,22 +447,26 @@ const LandingPage = () => {
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-2xl shadow-black/10 dark:shadow-white/5 border border-black/5 dark:border-white/10 relative overflow-hidden flex flex-col md:flex-row items-stretch p-0"
             >
-              <div className="absolute -top-12 -left-12 w-64 h-64 border-[3px] border-gray-300 dark:border-gray-700 border-dashed rounded-full pointer-events-none" />
+              <div className="absolute -top-12 -left-12 w-64 h-64 border-[3px] border-emerald-400/30 border-dashed rounded-full pointer-events-none" />
 
               {/* Left: Profile */}
               <div className="w-full md:w-2/5 relative z-20 flex flex-col items-center justify-center p-8 border-b md:border-b-0 md:border-r border-black/5 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative w-40 h-40 md:w-56 md:h-56 mb-6 flex justify-center items-end mx-auto overflow-hidden rounded-full bg-gradient-to-b from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 border-4 border-white dark:border-surface-dark shadow-inner"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="relative flex justify-center items-center mb-6"
                 >
-                  <img
-                    src="/profile.png"
-                    alt="Sky Tan"
-                    loading="lazy"
-                    className="h-[95%] w-auto object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500 origin-bottom"
-                  />
+                  <div className="absolute w-56 h-56 md:w-72 md:h-72 rounded-full bg-emerald-500/20 blur-3xl" />
+                  <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-emerald-500 p-[3px] shadow-lg shadow-emerald-500/30">
+                    <div className="w-full h-full rounded-full bg-black flex items-end justify-center overflow-hidden">
+                      <img
+                        src="/profile.png"
+                        alt="Sky Tan"
+                        loading="lazy"
+                        className="h-[90%] w-auto object-contain hover:scale-105 transition-transform duration-500 origin-bottom"
+                      />
+                    </div>
+                  </div>
                 </motion.div>
 
                 <motion.h2
@@ -542,7 +546,7 @@ const LandingPage = () => {
                 </motion.div>
               </div>
 
-              <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 border-t-[3px] border-r-[3px] border-gray-300 dark:border-gray-700 border-dashed rounded-tr-[3rem] pointer-events-none opacity-50" />
+              <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 border-t-[3px] border-r-[3px] border-emerald-400/40 border-dashed rounded-tr-[3rem] pointer-events-none opacity-50" />
             </motion.div>
           </motion.div>
         </div>
