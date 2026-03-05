@@ -14,7 +14,7 @@ const T = {
 
 const PANEL_COUNT = 8;
 const NAME = "SKY TAN";
-const ROLE = "Developer & Designer";
+const ROLE = "Data Enthusiast & Developer";
 
 // ─────────────────────────────────────────────────────────────
 // Particle

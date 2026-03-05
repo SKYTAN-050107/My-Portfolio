@@ -384,27 +384,27 @@ const SectionLabel = ({ label }) => (
 const journeyData = [
   {
     year: "2021",
-    phase: "The Spark",
+    phase: "SPM era",
     title: "Discovered My Passion",
     description:
-      "Started exploring programming through online courses. Fell in love with the intersection of data and design — building my first visualizations that turned raw numbers into stories.",
-    tags: ["Python", "HTML/CSS", "Data Viz"],
+      "Started exploring programming through basic courses in secondary school at MSAB(EC). Built my first online management system for swimming competitions as final project.",
+    tags: ["PHP", "HTML/CSS", "JavaScript", "MySQL"],
   },
   {
     year: "2022–23",
-    phase: "The Build",
-    title: "Levelled Up Fast",
+    phase: "Self Motivated Learning",
+    title: "Self Paced Study",
     description:
-      "Dived deep into full-stack development and machine learning. Built real projects, shipped real code, and learned that the best way to grow is to build something people actually use.",
-    tags: ["React", "Node.js", "ML", "SQL"],
+      "During the time ,I was studying a foundation course before enrolling into University at Kolej Matrikulasi Negeri Sembilan and initiated study on python and basic of machine learning. ",
+    tags: ["Streamlit", "Jupyter Notebook", "Python", "Anaconda"],
   },
   {
     year: "2024→",
-    phase: "The Now",
+    phase: "Now",
     title: "Building With Purpose",
     description:
       "Focused on crafting insight-driven products. Every line of code serves a purpose: making complex data simple, interfaces intuitive, and impact measurable.",
-    tags: ["TypeScript", "UI/UX", "AI", "Leadership"],
+    tags: ["JavaScript", "React", "NLP", "Frameworks"],
   },
 ];
 
@@ -531,7 +531,7 @@ const JourneySection = () => {
           </ScrollReveal>
           <ScrollReveal delay={0.08}>
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white mb-4">
-              The Journey
+              My Journey
             </h2>
           </ScrollReveal>
           <ScrollReveal delay={0.16}>

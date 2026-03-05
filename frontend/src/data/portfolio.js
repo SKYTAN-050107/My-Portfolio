@@ -18,10 +18,10 @@ export const expertise = [
   {
     id: 2,
     icon: Layers,
-    title: "UI System Design",
-    desc: "Tailwind, Framer Motion",
-    stat: "100%",
-    statLabel: "Pixel Perfect",
+    title: "Machine Learning",
+    desc: "Jupyter Notebook, Streamlit",
+    stat: "High",
+    statLabel: "Model Accuracy(%)",
   },
   {
     id: 3,
@@ -34,10 +34,10 @@ export const expertise = [
   {
     id: 4,
     icon: Smartphone,
-    title: "Responsive",
-    desc: "Mobile-First Design",
-    stat: "All",
-    statLabel: "Devices",
+    title: "NLP frameworks",
+    desc: "Langchain, Hugging Face",
+    stat: "RAG",
+    statLabel: "Development",
   },
 ];
 
