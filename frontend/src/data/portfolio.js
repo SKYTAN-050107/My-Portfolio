@@ -6,6 +6,10 @@ export const heroContent = {
   tagline: " Code with purpose. Build with impact.",
 };
 
+export const contactInfo = {
+  email: "skycode112324@example.com", 
+};
+
 export const expertise = [
   {
     id: 1,

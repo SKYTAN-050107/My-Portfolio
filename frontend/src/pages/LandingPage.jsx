@@ -13,7 +13,7 @@ import DayNightToggle from "../components/DayNightToggle";
 import ScrollProgress from "../components/ScrollProgress";
 import ConstellationBg from "../components/ConstellationBg";
 import MatrixRain from "../components/MatrixRain";
-import { heroContent, expertise, projects } from "../data/portfolio";
+import { heroContent, expertise, projects, contactInfo } from "../data/portfolio";
 
 // ─────────────────────────────────────────────
 // Utility: wrap value between min and max
@@ -658,16 +658,16 @@ const LandingPage = () => {
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex items-center gap-8"
             >
-              {["Home", "Work", "Contact"].map((label, i) => (
+              {[{ label: "Home", id: "#" }, { label: "Projects", id: "#projects" }, { label: "Email", id: "#contact" }].map((item, i) => (
                 <motion.a
-                  key={label}
-                  href={label === "Home" ? "#" : `#${label.toLowerCase()}`}
+                  key={item.label}
+                  href={item.id}
                   className="text-sm font-bold uppercase tracking-widest hover:text-accent-gray transition-colors"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08, duration: 0.5 }}
                 >
-                  {label}
+                  {item.label}
                 </motion.a>
               ))}
               <div className="scale-75 origin-center">
@@ -964,20 +964,28 @@ const LandingPage = () => {
           </div>
 
           <ScrollReveal delay={0.25}>
-            <motion.button
+            <motion.a
+              href={`mailto:${contactInfo.email}`}
               whileHover={{ scale: 1.06, y: -4 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection("contact")}
-              className="bg-black text-white dark:bg-white dark:text-black px-10 py-5 rounded-full font-bold text-xl cursor-pointer shadow-xl shadow-black/20 dark:shadow-white/10"
+              className="bg-black text-white dark:bg-white dark:text-black px-10 py-5 rounded-full font-bold text-xl cursor-pointer shadow-xl shadow-black/20 dark:shadow-white/10 inline-block"
             >
-              Let's Build Something
-            </motion.button>
+              Email me directly
+            </motion.a>
           </ScrollReveal>
 
           <ScrollReveal delay={0.35}>
             <p className="mt-6 text-sm text-gray-400 font-medium">
               Available for freelance & full-time opportunities
             </p>
+            <motion.a
+              href={`mailto:${contactInfo.email}`}
+              className="mt-2 inline-flex items-center gap-2 text-sm text-emerald-500 hover:text-emerald-400 transition-colors font-medium"
+              whileHover={{ x: 4 }}
+            >
+              <span className="material-icons-round text-base">mail</span>
+              {contactInfo.email}
+            </motion.a>
           </ScrollReveal>
         </div>
       </footer>
