@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   motion,
   useScroll,
@@ -67,7 +67,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
       transition: {
         duration: 0.75,
         delay,
-        ease: [0.16, 1, 0.3, 1], // expo-out — snappy and satisfying
+        ease: [0.16, 1, 0.3, 1],
       },
     },
   };
@@ -86,7 +86,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
 };
 
 // ─────────────────────────────────────────────
-// Parallax Layer — maps scroll position to translateY
+// Parallax Layer
 // ─────────────────────────────────────────────
 const ParallaxLayer = ({ children, speed = 0.3, className = "" }) => {
   const ref = useRef(null);
@@ -104,7 +104,7 @@ const ParallaxLayer = ({ children, speed = 0.3, className = "" }) => {
 };
 
 // ─────────────────────────────────────────────
-// Horizontal Marquee — velocity-linked ticker
+// Horizontal Marquee
 // ─────────────────────────────────────────────
 const skills = ["React", "Python", "TypeScript", "Data Viz", "Machine Learning", "UI/UX", "Node.js", "SQL"];
 const repeatedSkills = [...skills, ...skills, ...skills, ...skills];
@@ -117,28 +117,19 @@ const VelocityMarquee = ({ baseVelocity = 3 }) => {
   const scrollVelocity = useVelocity(scrollY);
   const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
   const velocityFactor = useTransform(smoothVelocity, [-3000, 3000], [-5, 5]);
-
   const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
   const directionFactor = useRef(1);
 
   useEffect(() => {
     const marqueeEl = containerRef.current;
     if (!marqueeEl) return;
-
-    const handleVisibilityChange = () => {
-      isActiveRef.current = !document.hidden;
-    };
-
+    const handleVisibilityChange = () => { isActiveRef.current = !document.hidden; };
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        isActiveRef.current = entry.isIntersecting && !document.hidden;
-      },
+      ([entry]) => { isActiveRef.current = entry.isIntersecting && !document.hidden; },
       { threshold: 0.01 }
     );
-
     observer.observe(marqueeEl);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
       observer.disconnect();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -147,7 +138,6 @@ const VelocityMarquee = ({ baseVelocity = 3 }) => {
 
   useAnimationFrame((_, delta) => {
     if (!isActiveRef.current) return;
-
     let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
     if (velocityFactor.get() < 0) directionFactor.current = -1;
     else if (velocityFactor.get() > 0) directionFactor.current = 1;
@@ -159,10 +149,7 @@ const VelocityMarquee = ({ baseVelocity = 3 }) => {
     <div ref={containerRef} className="overflow-hidden py-3 border-y border-black/8 dark:border-white/8 bg-white/50 dark:bg-black/20 backdrop-blur-sm">
       <motion.div style={{ x }} className="flex whitespace-nowrap gap-0">
         {repeatedSkills.map((skill, i) => (
-          <span
-            key={i}
-            className="inline-block px-6 text-sm font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500"
-          >
+          <span key={i} className="inline-block px-6 text-sm font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
             {skill}
             <span className="ml-6 text-gray-200 dark:text-gray-700">·</span>
           </span>
@@ -240,7 +227,7 @@ const NeonSequence = () => {
 };
 
 // ─────────────────────────────────────────────
-// Expertise Card with scroll-stagger
+// Expertise Card
 // ─────────────────────────────────────────────
 const ExpertiseCard = ({ item, index }) => (
   <ScrollReveal delay={index * 0.08} direction="up">
@@ -268,17 +255,40 @@ const ExpertiseCard = ({ item, index }) => (
 );
 
 // ─────────────────────────────────────────────
-// Project Card with scroll-stagger + depth tilt
+// Project Card — with screenshot + GitHub link
 // ─────────────────────────────────────────────
 const ProjectCard = ({ project, index }) => {
   const outerRef = useRef(null);
   const boundsRef = useRef(null);
   const frameRef = useRef(0);
+  const intervalRef = useRef(null);
   const latestPointerRef = useRef({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [imgIndex, setImgIndex] = useState(0);
+  const [hasImageError, setHasImageError] = useState(false);
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
   const springX = useSpring(rotateX, { stiffness: 200, damping: 20 });
   const springY = useSpring(rotateY, { stiffness: 200, damping: 20 });
+  const screenshots = project.screenshots?.length
+    ? project.screenshots
+    : project.screenshot
+      ? [project.screenshot]
+      : [];
+
+  const startCycle = () => {
+    if (screenshots.length <= 1) return;
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setImgIndex((i) => (i + 1) % screenshots.length);
+    }, 800);
+  };
+
+  const stopCycle = () => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    setImgIndex(0);
+  };
 
   const measureBounds = () => {
     const el = outerRef.current;
@@ -290,7 +300,6 @@ const ProjectCard = ({ project, index }) => {
     frameRef.current = 0;
     const rect = boundsRef.current;
     if (!rect) return;
-
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     rotateX.set(((latestPointerRef.current.y - cy) / rect.height) * -10);
@@ -304,7 +313,15 @@ const ProjectCard = ({ project, index }) => {
     }
   };
 
+  const handleEnter = () => {
+    measureBounds();
+    setIsHovered(true);
+    startCycle();
+  };
+
   const handleLeave = () => {
+    setIsHovered(false);
+    stopCycle();
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
@@ -315,20 +332,24 @@ const ProjectCard = ({ project, index }) => {
 
   useEffect(() => {
     return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [imgIndex, project.id]);
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
       <div
         ref={outerRef}
-        onMouseEnter={measureBounds}
-        onFocus={measureBounds}
+        onMouseEnter={handleEnter}
+        onFocus={handleEnter}
         onMouseMove={handleMouse}
         onMouseLeave={handleLeave}
+        onBlur={handleLeave}
         className="h-full"
       >
         <motion.div
@@ -337,16 +358,67 @@ const ProjectCard = ({ project, index }) => {
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
           className="group relative cursor-pointer h-full"
         >
+          {/* ── Screenshot / Image Area ── */}
           <div className="aspect-[4/3] bg-gray-100 dark:bg-surface-dark rounded-2xl overflow-hidden mb-6 border border-black/5 dark:border-white/10">
-            <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-108 transition-transform duration-700 flex items-center justify-center relative overflow-hidden">
-              {/* Shimmer overlay on hover */}
+            <div className="w-full h-full relative overflow-hidden" style={{ perspective: "1200px" }}>
               <motion.div
-                className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-                style={{ skewX: "-20deg" }}
-              />
-              <project.icon className="w-12 h-12 text-gray-300 dark:text-gray-600" strokeWidth={1} />
+                className="relative w-full h-full"
+                style={{ transformStyle: "preserve-3d" }}
+                animate={{ rotateY: isHovered ? 180 : 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <div className="absolute inset-0 backface-hidden overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 z-10"
+                    style={{ skewX: "-20deg" }}
+                  />
+                  {screenshots.length > 0 && !hasImageError ? (
+                    <img
+                      src={screenshots[imgIndex]}
+                      alt={`${project.title} screenshot ${imgIndex + 1}`}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                      onError={() => setHasImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-105 transition-transform duration-700 flex items-center justify-center relative">
+                      <project.icon className="w-12 h-12 text-gray-300 dark:text-gray-600" strokeWidth={1} />
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className="absolute inset-0 backface-hidden bg-black dark:bg-white rounded-2xl p-6 flex flex-col justify-center"
+                  style={{ transform: "rotateY(180deg)" }}
+                >
+                  <p className="text-white dark:text-black font-bold text-lg mb-4">{project.title}</p>
+                  <div className="flex items-center gap-2 mb-3">
+                    {project.role && (
+                      <span className="px-2.5 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
+                        {project.role}
+                      </span>
+                    )}
+                    {project.year && (
+                      <span className="px-2.5 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
+                        {project.year}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(project.stack || []).map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-3 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-xs font-bold"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
+
+          {/* ── Card Footer ── */}
           <div className="flex justify-between items-start">
             <div>
               <h3 className="text-2xl font-bold mb-1 text-black dark:text-white group-hover:underline decoration-2 underline-offset-4">
@@ -355,13 +427,51 @@ const ProjectCard = ({ project, index }) => {
               <p className="text-accent-gray text-sm mb-3">{project.category}</p>
               <p className="text-sm text-gray-500 max-w-xs">{project.description}</p>
             </div>
-            <motion.button
+
+            {/* ── GitHub arrow button ── */}
+            <motion.a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ rotate: 45, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 400 }}
+              onClick={(e) => e.stopPropagation()}
               className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors flex-shrink-0"
+              title={`View ${project.title} on GitHub`}
             >
               <span className="material-icons-round text-sm">arrow_outward</span>
-            </motion.button>
+            </motion.a>
+          </div>
+
+          {/* ── Live / GitHub badge row ── */}
+          <div className="flex items-center gap-2 mt-3">
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+              >
+                {/* GitHub SVG icon */}
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12" />
+                </svg>
+                GitHub
+              </a>
+            )}
+            {project.live && (
+              <a
+                href={project.live}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-colors"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                Live
+              </a>
+            )}
           </div>
         </motion.div>
       </div>
@@ -370,7 +480,7 @@ const ProjectCard = ({ project, index }) => {
 };
 
 // ─────────────────────────────────────────────
-// Floating section label (sticks to left edge)
+// Section Label
 // ─────────────────────────────────────────────
 const SectionLabel = ({ label }) => (
   <ScrollReveal direction="left">
@@ -381,6 +491,9 @@ const SectionLabel = ({ label }) => (
   </ScrollReveal>
 );
 
+// ─────────────────────────────────────────────
+// Journey Section
+// ─────────────────────────────────────────────
 const journeyData = [
   {
     year: "2021",
@@ -395,7 +508,7 @@ const journeyData = [
     phase: "Self Motivated Learning",
     title: "Self Paced Study",
     description:
-      "During the time ,I was studying a foundation course before enrolling into University at Kolej Matrikulasi Negeri Sembilan and initiated study on python and basic of machine learning. ",
+      "During the time, I was studying a foundation course before enrolling into University at Kolej Matrikulasi Negeri Sembilan and initiated study on python and basic of machine learning.",
     tags: ["Streamlit", "Jupyter Notebook", "Python", "Anaconda"],
   },
   {
@@ -415,22 +528,16 @@ const JourneyCardInner = ({ item }) => (
     className="relative bg-white dark:bg-surface-dark border border-black/5 dark:border-white/10 hover:border-emerald-400/40 rounded-2xl p-6 shadow-sm hover:shadow-emerald-500/10 hover:shadow-lg transition-all duration-300 group"
   >
     <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
     <div className="flex items-center gap-3 mb-3">
       <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-500">{item.year}</span>
       <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
       <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{item.phase}</span>
     </div>
-
     <h3 className="text-xl font-black text-black dark:text-white mb-2 tracking-tight">{item.title}</h3>
     <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-4">{item.description}</p>
-
     <div className="flex flex-wrap gap-2">
       {item.tags.map((tag) => (
-        <span
-          key={tag}
-          className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
-        >
+        <span key={tag} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
           {tag}
         </span>
       ))}
@@ -466,7 +573,6 @@ const JourneyCard = ({ item, index }) => {
           </motion.div>
         )}
       </div>
-
       <div className="hidden md:flex flex-col items-center flex-shrink-0 w-16">
         {index < journeyData.length - 1 && (
           <div className="relative w-[3px] h-44 bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
@@ -477,7 +583,6 @@ const JourneyCard = ({ item, index }) => {
           </div>
         )}
       </div>
-
       <div className="hidden md:block w-[calc(50%-32px)] pl-8">
         {!isLeft && (
           <motion.div style={{ x: cardX, opacity: cardOpacity }}>
@@ -485,7 +590,6 @@ const JourneyCard = ({ item, index }) => {
           </motion.div>
         )}
       </div>
-
       <div className="flex md:hidden items-start gap-4 w-full pb-12">
         <div className="flex flex-col items-center flex-shrink-0">
           {index < journeyData.length - 1 && (
@@ -497,7 +601,6 @@ const JourneyCard = ({ item, index }) => {
             </div>
           )}
         </div>
-
         <motion.div style={{ x: mobileCardX, opacity: cardOpacity }} className="flex-1 pt-1">
           <JourneyCardInner item={item} />
         </motion.div>
@@ -519,7 +622,6 @@ const JourneySection = () => {
   return (
     <section ref={sectionRef} className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
-
       <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="text-center mb-20">
           <ScrollReveal>
@@ -530,30 +632,23 @@ const JourneySection = () => {
             </div>
           </ScrollReveal>
           <ScrollReveal delay={0.08}>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white mb-4">
-              My Journey
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white mb-4">My Journey</h2>
           </ScrollReveal>
           <ScrollReveal delay={0.16}>
-            <p className="text-gray-400 text-lg font-light max-w-md mx-auto">
-              Three chapters that shaped how I think, build, and create.
-            </p>
+            <p className="text-gray-400 text-lg font-light max-w-md mx-auto">Three chapters that shaped how I think, build, and create.</p>
           </ScrollReveal>
         </div>
-
         <div className="relative">
           <div className="flex justify-center mb-0">
             <div className="relative w-[3px] h-12 bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
               <motion.div style={{ height: capHeight }} className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]" />
             </div>
           </div>
-
           <div className="flex flex-col items-center">
             {journeyData.map((item, i) => (
               <JourneyCard key={i} item={item} index={i} />
             ))}
           </div>
-
           <ScrollReveal delay={0.1}>
             <div className="flex flex-col items-center mt-2">
               <div className="w-[2px] h-8 bg-gradient-to-b from-teal-500 to-transparent" />
@@ -575,12 +670,8 @@ const LandingPage = () => {
   const mouseFrameRef = useRef(0);
   const latestMouseRef = useRef({ x: 0, y: 0 });
 
-  // ── Hero parallax layers (now much more pronounced) ──
-  // Deep bg drifts upward slowly
   const bgY = useTransform(scrollY, [0, 1200], [0, 220]);
-  // Mid layer moves faster — creates clear depth separation
   const midY = useTransform(scrollY, [0, 1200], [0, 520]);
-  // Hero card itself slides up and fades as user scrolls away
   const heroCardY = useTransform(scrollY, [0, 500], [0, -80]);
   const heroCardOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroCardScale = useTransform(scrollY, [0, 400], [1, 0.96]);
@@ -589,11 +680,9 @@ const LandingPage = () => {
   const smoothHeroCardScale = useSpring(heroCardScale, { stiffness: 200, damping: 32, mass: 0.3 });
   const scrollHintOpacity = useTransform(scrollY, [0, 120], [1, 0]);
 
-  // ── Nav shrink on scroll ──
   const navBg = useTransform(scrollYProgress, [0, 0.05], ["rgba(255,255,255,0)", "rgba(255,255,255,0.85)"]);
   const navBlur = useTransform(scrollYProgress, [0, 0.05], [0, 12]);
 
-  // ── Mouse parallax ──
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const smoothMX = useSpring(mouseX, { stiffness: 50, damping: 20 });
@@ -607,21 +696,16 @@ const LandingPage = () => {
       mouseX.set((latestMouseRef.current.x / window.innerWidth - 0.5) * 2);
       mouseY.set((latestMouseRef.current.y / window.innerHeight - 0.5) * 2);
     };
-
     const handleMouseMove = (e) => {
       latestMouseRef.current = { x: e.clientX, y: e.clientY };
       if (!mouseFrameRef.current) {
         mouseFrameRef.current = requestAnimationFrame(applyMouseParallax);
       }
     };
-
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      if (mouseFrameRef.current) {
-        cancelAnimationFrame(mouseFrameRef.current);
-      }
+      if (mouseFrameRef.current) cancelAnimationFrame(mouseFrameRef.current);
     };
   }, [mouseX, mouseY]);
 
@@ -642,7 +726,7 @@ const LandingPage = () => {
     <div className="font-display bg-background-light dark:bg-background-dark text-primary dark:text-primary-dark selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black overflow-hidden min-h-screen transition-colors duration-500">
       <ScrollProgress />
 
-      {/* ── Sticky Nav with blur-in on scroll ── */}
+      {/* ── Sticky Nav ── */}
       <motion.nav
         className="fixed top-0 w-full z-50 transition-colors duration-300"
         style={{
@@ -682,18 +766,15 @@ const LandingPage = () => {
           HERO SECTION
       ════════════════════════════════════════ */}
       <header className="relative pt-28 pb-20 lg:pt-36 lg:pb-32 flex justify-center items-center min-h-[90vh] overflow-hidden">
-        {/* Deep Background — slowest layer */}
         <motion.div style={{ y: bgY }} className="absolute inset-0 z-0 pointer-events-none">
           <ConstellationBg particleCount={60} />
         </motion.div>
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full">
-          {/* Hero card exits upward as user scrolls down */}
           <motion.div
             style={{ y: smoothHeroCardY, opacity: smoothHeroCardOpacity, scale: smoothHeroCardScale }}
             className="relative w-full group mx-auto transform-gpu will-change-transform"
           >
-            {/* Midground blobs — faster parallax for visible depth */}
             <motion.div
               style={{ y: midY, x: glowX }}
               className="absolute -top-20 -right-20 w-96 h-[32rem] bg-gradient-to-b from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-full blur-[100px] pointer-events-none opacity-60 transform-gpu will-change-transform"
@@ -702,7 +783,6 @@ const LandingPage = () => {
               style={{ y: midY, x: glowY }}
               className="absolute -bottom-20 -left-20 w-96 h-[32rem] bg-gradient-to-t from-gray-300 to-gray-200 dark:from-gray-900 dark:to-gray-800 rounded-full blur-[100px] pointer-events-none opacity-60 transform-gpu will-change-transform"
             />
-
             <div className="absolute -inset-6 rounded-[3rem] bg-emerald-500/20 blur-3xl pointer-events-none" />
 
             {/* Unified Card */}
@@ -825,7 +905,7 @@ const LandingPage = () => {
           </motion.div>
         </div>
 
-        {/* Scroll hint — fades out once user scrolls */}
+        {/* Scroll hint */}
         <motion.div
           style={{ opacity: scrollHintOpacity }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
@@ -841,7 +921,7 @@ const LandingPage = () => {
         </motion.div>
       </header>
 
-      {/* ── Velocity Marquee between sections ── */}
+      {/* ── Velocity Marquee ── */}
       <VelocityMarquee baseVelocity={2.5} />
 
       <JourneySection />
@@ -852,19 +932,14 @@ const LandingPage = () => {
           EXPERTISE SECTION
       ════════════════════════════════════════ */}
       <section className="py-24 bg-surface-light dark:bg-surface-dark relative z-10 overflow-hidden">
-        {/* Matrix rain drifts at a different speed for depth */}
         <ParallaxLayer speed={0.25} className="absolute -top-32 -bottom-32 left-0 right-0 pointer-events-none">
           <MatrixRain fontSize={14} />
         </ParallaxLayer>
-
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
           <SectionLabel label="What I Do" />
-
           <div className="mb-16 flex flex-col md:flex-row justify-between items-end gap-4">
             <ScrollReveal>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">
-                Core Expertise
-              </h2>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">Core Expertise</h2>
               <motion.div
                 className="h-1 w-0 bg-black dark:bg-white mt-4"
                 whileInView={{ width: 80 }}
@@ -873,7 +948,6 @@ const LandingPage = () => {
               />
             </ScrollReveal>
           </div>
-
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {expertise.map((item, i) => (
               <ExpertiseCard key={item.id} item={item} index={i} />
@@ -888,7 +962,6 @@ const LandingPage = () => {
           PROJECTS SECTION
       ════════════════════════════════════════ */}
       <section id="projects" className="py-24 relative z-10 bg-background-light dark:bg-background-dark overflow-hidden">
-        {/* Parallax blobs — clearly visible depth */}
         <ParallaxLayer speed={0.4} className="absolute top-40 left-10 w-72 h-72 pointer-events-none">
           <div className="w-full h-full bg-gradient-to-tr from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 rounded-full blur-[120px] opacity-40" />
         </ParallaxLayer>
@@ -898,13 +971,10 @@ const LandingPage = () => {
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-20">
           <SectionLabel label="Selected Work" />
-
           <div className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div>
               <ScrollReveal>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">
-                  Selected Work
-                </h2>
+                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">Selected Work</h2>
                 <motion.div
                   className="h-1 w-0 bg-black dark:bg-white mt-4"
                   whileInView={{ width: 80 }}
@@ -914,26 +984,34 @@ const LandingPage = () => {
               </ScrollReveal>
             </div>
             <ScrollReveal delay={0.1} direction="left">
-              <motion.button
+              <motion.a
+                href="https://github.com/SKYTAN-050107"
+                target="_blank"
+                rel="noopener noreferrer"
                 whileHover={{ x: 4 }}
                 className="hidden md:flex items-center gap-2 font-bold text-sm uppercase tracking-widest hover:text-accent-gray transition-colors cursor-pointer"
               >
-                View All <span className="material-icons-round text-base">arrow_forward</span>
-              </motion.button>
+                View All on GitHub <span className="material-icons-round text-base">arrow_forward</span>
+              </motion.a>
             </ScrollReveal>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {projects.map((project, i) => (
-              <ProjectCard key={i} project={project} index={i} />
+              <ProjectCard key={project.id ?? i} project={project} index={i} />
             ))}
           </div>
 
           <div className="mt-12 md:hidden">
             <ScrollReveal>
-              <button className="w-full py-4 border border-black/10 dark:border-white/20 rounded-full font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                View All Projects
-              </button>
+              <a
+                href="https://github.com/SKYTAN-050107"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-4 border border-black/10 dark:border-white/20 rounded-full font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-center"
+              >
+                View All on GitHub
+              </a>
             </ScrollReveal>
           </div>
         </div>
@@ -948,9 +1026,7 @@ const LandingPage = () => {
         <ParallaxLayer speed={0.2} className="absolute -inset-y-40 inset-x-0 pointer-events-none">
           <ConstellationBg particleCount={35} />
         </ParallaxLayer>
-
         <div className="relative z-10">
-          {/* Large text with split reveal */}
           <div className="overflow-hidden mb-4">
             <motion.h2
               initial={{ y: "100%", opacity: 0 }}
@@ -962,7 +1038,6 @@ const LandingPage = () => {
               GET IN TOUCH
             </motion.h2>
           </div>
-
           <ScrollReveal delay={0.25}>
             <motion.a
               href={`mailto:${contactInfo.email}`}
@@ -973,11 +1048,8 @@ const LandingPage = () => {
               Email me directly
             </motion.a>
           </ScrollReveal>
-
           <ScrollReveal delay={0.35}>
-            <p className="mt-6 text-sm text-gray-400 font-medium">
-              Available for freelance & full-time opportunities
-            </p>
+            <p className="mt-6 text-sm text-gray-400 font-medium">Available for freelance & full-time opportunities</p>
             <motion.a
               href={`mailto:${contactInfo.email}`}
               className="mt-2 inline-flex items-center gap-2 text-sm text-emerald-500 hover:text-emerald-400 transition-colors font-medium"
