@@ -308,6 +308,7 @@ const ProjectCard = ({ project, index }) => {
   const startCycle = () => {
     if (totalSlides <= 1) return;
     clearTimeout(intervalRef.current);
+    setImgIndex((i) => (i + 1) % totalSlides);
 
     const scheduleNext = () => {
       const delay = isStackSlide ? infoSlideMs : normalSlideMs;
