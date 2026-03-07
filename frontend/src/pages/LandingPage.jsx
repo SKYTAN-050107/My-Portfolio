@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -266,19 +266,25 @@ const ProjectCard = ({ project, index }) => {
   const intervalRef = useRef(null);
   const latestPointerRef = useRef({ x: 0, y: 0 });
   const [imgIndex, setImgIndex] = useState(0);
-  const [hasImageError, setHasImageError] = useState(false);
+  const [failedImages, setFailedImages] = useState(() => new Set());
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
   const springX = useSpring(rotateX, { stiffness: 200, damping: 20 });
   const springY = useSpring(rotateY, { stiffness: 200, damping: 20 });
-  const screenshots = project.screenshots?.length
-    ? project.screenshots
-    : project.screenshot
-      ? [project.screenshot]
-      : [];
+  const screenshots = useMemo(
+    () =>
+      project.screenshots?.length
+        ? project.screenshots
+        : project.screenshot
+          ? [project.screenshot]
+          : [],
+    [project.screenshot, project.screenshots]
+  );
   const hasStackSlide = (project.stack || []).length > 0;
   const totalSlides = screenshots.length + (hasStackSlide ? 1 : 0);
   const isStackSlide = hasStackSlide && imgIndex === screenshots.length;
+  const currentImageSrc = screenshots[imgIndex];
+  const hasCurrentImageError = currentImageSrc ? failedImages.has(currentImageSrc) : false;
   const normalSlideMs = 800;
   const infoSlideMs = 1800;
   
@@ -357,8 +363,8 @@ const ProjectCard = ({ project, index }) => {
   }, [imgIndex, isStackSlide, totalSlides]);
 
   useEffect(() => {
-    setHasImageError(false);
-  }, [imgIndex, project.id]);
+    setFailedImages(new Set());
+  }, [project.id]);
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
@@ -423,18 +429,26 @@ const ProjectCard = ({ project, index }) => {
                       </div>
                     </motion.div>
                   </AnimatePresence>
-                ) : screenshots.length > 0 && !hasImageError ? (
+                ) : screenshots.length > 0 && !hasCurrentImageError ? (
                   <AnimatePresence mode="wait">
                     <motion.img
-                      key={screenshots[imgIndex]}
-                      src={screenshots[imgIndex]}
+                      key={currentImageSrc}
+                      src={currentImageSrc}
                       alt={`${project.title} screenshot ${imgIndex + 1}`}
                       className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                       initial={{ opacity: 0, scale: 1.03 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.35, ease: "easeOut" }}
-                      onError={() => setHasImageError(true)}
+                      onError={() => {
+                        if (!currentImageSrc) return;
+                        setFailedImages((prev) => {
+                          if (prev.has(currentImageSrc)) return prev;
+                          const next = new Set(prev);
+                          next.add(currentImageSrc);
+                          return next;
+                        });
+                      }}
                     />
                   </AnimatePresence>
                 ) : (
@@ -709,21 +723,28 @@ const SelectedWorkSection = React.memo(() => {
   const [isProjectAutoPaused, setIsProjectAutoPaused] = useState(false);
   const projectCount = projects.length;
   const visibleProjectCount = Math.min(3, projectCount);
-  const visibleProjects = Array.from({ length: visibleProjectCount }, (_, offset) => {
-    const idx = (activeProjectIndex + offset) % Math.max(projectCount, 1);
-    return projects[idx];
-  });
+  const visibleProjects = useMemo(() => {
+    return Array.from({ length: visibleProjectCount }, (_, offset) => {
+      const idx = (activeProjectIndex + offset) % Math.max(projectCount, 1);
+      return projects[idx];
+    });
+  }, [activeProjectIndex, projectCount, visibleProjectCount]);
 
   useEffect(() => {
     if (projectCount <= 1 || isProjectAutoPaused) return;
     const timer = setInterval(() => {
+      if (document.hidden) return;
       setActiveProjectIndex((prev) => (prev + 1) % projectCount);
     }, 3400);
     return () => clearInterval(timer);
   }, [projectCount, isProjectAutoPaused]);
 
-  const showNextProject = () => setActiveProjectIndex((prev) => (prev + 1) % projectCount);
-  const showPrevProject = () => setActiveProjectIndex((prev) => (prev - 1 + projectCount) % projectCount);
+  const showNextProject = useCallback(() => {
+    setActiveProjectIndex((prev) => (prev + 1) % projectCount);
+  }, [projectCount]);
+  const showPrevProject = useCallback(() => {
+    setActiveProjectIndex((prev) => (prev - 1 + projectCount) % projectCount);
+  }, [projectCount]);
 
   return (
     <section id="projects" className="py-24 relative z-10 bg-background-light dark:bg-background-dark overflow-hidden">
