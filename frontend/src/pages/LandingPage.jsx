@@ -662,7 +662,7 @@ const JourneySection = () => {
   const capHeight = useTransform(capProgress, [0, 1], ["0%", "100%"]);
 
   return (
-    <section ref={sectionRef} className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
+    <section id="journey" ref={sectionRef} className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="text-center mb-20">
@@ -711,6 +711,11 @@ const LandingPage = () => {
   const { scrollY, scrollYProgress } = useScroll();
   const mouseFrameRef = useRef(0);
   const latestMouseRef = useRef({ x: 0, y: 0 });
+  const expertiseSectionRef = useRef(null);
+  const expertisePagingLockRef = useRef(false);
+  const expertisePagingTimerRef = useRef(null);
+  const expertiseWheelAccumulatorRef = useRef(0);
+  const expertiseWheelResetRef = useRef(null);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [isProjectAutoPaused, setIsProjectAutoPaused] = useState(false);
   const projectCount = projects.length;
@@ -765,8 +770,52 @@ const LandingPage = () => {
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const handleExpertisePaging = (e) => {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    const sectionEl = expertiseSectionRef.current;
+    if (!sectionEl) return;
+
+    const rect = sectionEl.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    const isAnchoredToViewport =
+      Math.abs(rect.top) <= 20 ||
+      (rect.top <= 20 && rect.bottom >= viewportH - 20) ||
+      Math.abs(rect.bottom - viewportH) <= 20;
+
+    if (!isAnchoredToViewport) return;
+
+    if (expertisePagingLockRef.current) {
+      e.preventDefault();
+      return;
+    }
+    expertiseWheelAccumulatorRef.current += e.deltaY;
+    clearTimeout(expertiseWheelResetRef.current);
+    expertiseWheelResetRef.current = setTimeout(() => {
+      expertiseWheelAccumulatorRef.current = 0;
+    }, 140);
+
+    if (Math.abs(expertiseWheelAccumulatorRef.current) < 160) return;
+
+    e.preventDefault();
+    expertisePagingLockRef.current = true;
+    if (expertiseWheelAccumulatorRef.current > 0) scrollToSection("projects");
+    else scrollToSection("journey");
+    expertiseWheelAccumulatorRef.current = 0;
+
+    clearTimeout(expertisePagingTimerRef.current);
+    expertisePagingTimerRef.current = setTimeout(() => {
+      expertisePagingLockRef.current = false;
+    }, 900);
+  };
   const showNextProject = () => setActiveProjectIndex((prev) => (prev + 1) % projectCount);
   const showPrevProject = () => setActiveProjectIndex((prev) => (prev - 1 + projectCount) % projectCount);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(expertisePagingTimerRef.current);
+      clearTimeout(expertiseWheelResetRef.current);
+    };
+  }, []);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
@@ -986,11 +1035,16 @@ const LandingPage = () => {
       {/* ════════════════════════════════════════
           EXPERTISE SECTION
       ════════════════════════════════════════ */}
-      <section className="py-24 bg-surface-light dark:bg-surface-dark relative z-10 overflow-hidden">
+      <section
+        id="expertise"
+        ref={expertiseSectionRef}
+        onWheel={handleExpertisePaging}
+        className="min-h-screen py-16 md:py-20 bg-surface-light dark:bg-surface-dark relative z-10 overflow-hidden flex items-center"
+      >
         <ParallaxLayer speed={0.25} className="absolute -top-32 -bottom-32 left-0 right-0 pointer-events-none">
           <MatrixRain fontSize={14} />
         </ParallaxLayer>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
           <SectionLabel label="What I Do" />
           <div className="mb-16 flex flex-col md:flex-row justify-between items-end gap-4">
             <ScrollReveal>
