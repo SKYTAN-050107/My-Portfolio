@@ -7,7 +7,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motio
 const T = {
   COUNTER_DURATION: 1800,
   NAME_HOLD:        600,
-  GLITCH_DURATION:  500,
+  GLITCH_DURATION:  1800,
   CURTAIN_STAGGER:  110,
   PANEL_DURATION:   1200,
 };
