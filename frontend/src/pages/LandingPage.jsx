@@ -703,6 +703,150 @@ const JourneySection = () => {
   );
 };
 
+const SelectedWorkSection = React.memo(() => {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [isProjectAutoPaused, setIsProjectAutoPaused] = useState(false);
+  const projectCount = projects.length;
+  const visibleProjectCount = Math.min(3, projectCount);
+  const visibleProjects = Array.from({ length: visibleProjectCount }, (_, offset) => {
+    const idx = (activeProjectIndex + offset) % Math.max(projectCount, 1);
+    return projects[idx];
+  });
+
+  useEffect(() => {
+    if (projectCount <= 1 || isProjectAutoPaused) return;
+    const timer = setInterval(() => {
+      setActiveProjectIndex((prev) => (prev + 1) % projectCount);
+    }, 3400);
+    return () => clearInterval(timer);
+  }, [projectCount, isProjectAutoPaused]);
+
+  const showNextProject = () => setActiveProjectIndex((prev) => (prev + 1) % projectCount);
+  const showPrevProject = () => setActiveProjectIndex((prev) => (prev - 1 + projectCount) % projectCount);
+
+  return (
+    <section id="projects" className="py-24 relative z-10 bg-background-light dark:bg-background-dark overflow-hidden">
+      <ParallaxLayer speed={0.4} className="absolute top-40 left-10 w-72 h-72 pointer-events-none">
+        <div className="w-full h-full bg-gradient-to-tr from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 rounded-full blur-[120px] opacity-40" />
+      </ParallaxLayer>
+      <ParallaxLayer speed={0.55} className="absolute bottom-40 right-10 w-96 h-96 pointer-events-none">
+        <div className="w-full h-full bg-gradient-to-bl from-gray-100 to-gray-300 dark:from-gray-800 dark:to-black rounded-full blur-[150px] opacity-40" />
+      </ParallaxLayer>
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-20">
+        <SectionLabel label="Selected Work" />
+        <div className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div>
+            <ScrollReveal>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">Selected Work</h2>
+              <motion.div
+                className="h-1 w-0 bg-black dark:bg-white mt-4"
+                whileInView={{ width: 80 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </ScrollReveal>
+          </div>
+          <ScrollReveal delay={0.1} direction="left">
+            <motion.a
+              href="https://github.com/SKYTAN-050107"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ x: 4 }}
+              className="hidden md:flex items-center gap-2 font-bold text-sm uppercase tracking-widest hover:text-accent-gray transition-colors cursor-pointer"
+            >
+              View All on GitHub <span className="material-icons-round text-base">arrow_forward</span>
+            </motion.a>
+          </ScrollReveal>
+        </div>
+
+        <div className="relative">
+          {projectCount > 1 && (
+            <div className="flex items-center justify-end gap-2 mb-4">
+              <button
+                type="button"
+                onClick={showPrevProject}
+                className="w-10 h-10 rounded-full border border-black/10 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                aria-label="Previous project"
+              >
+                <span className="material-icons-round text-base">west</span>
+              </button>
+              <button
+                type="button"
+                onClick={showNextProject}
+                className="w-10 h-10 rounded-full border border-black/10 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                aria-label="Next project"
+              >
+                <span className="material-icons-round text-base">east</span>
+              </button>
+            </div>
+          )}
+
+          <div
+            className="overflow-hidden"
+            onMouseEnter={() => setIsProjectAutoPaused(true)}
+            onMouseLeave={() => setIsProjectAutoPaused(false)}
+            onFocusCapture={() => setIsProjectAutoPaused(true)}
+            onBlurCapture={() => setIsProjectAutoPaused(false)}
+          >
+            {projectCount > 0 && (
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={`project-window-${activeProjectIndex}`}
+                  initial={{ x: 140, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -140, opacity: 0 }}
+                  transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                  className="grid md:grid-cols-3 gap-8"
+                >
+                  {visibleProjects.map((project, cardIndex) => (
+                    <ProjectCard
+                      key={`${project.id ?? cardIndex}-${activeProjectIndex}-${cardIndex}`}
+                      project={project}
+                      index={cardIndex}
+                    />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </div>
+
+          {projectCount > 1 && (
+            <div className="mt-5 flex items-center justify-center gap-2">
+              {projects.map((project, i) => (
+                <button
+                  key={project.id ?? i}
+                  type="button"
+                  onClick={() => setActiveProjectIndex(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === activeProjectIndex
+                      ? "w-8 bg-black dark:bg-white"
+                      : "w-2 bg-black/25 dark:bg-white/25 hover:bg-black/40 dark:hover:bg-white/40"
+                  }`}
+                  aria-label={`Show project ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-12 md:hidden">
+          <ScrollReveal>
+            <a
+              href="https://github.com/SKYTAN-050107"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-4 border border-black/10 dark:border-white/20 rounded-full font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-center"
+            >
+              View All on GitHub
+            </a>
+          </ScrollReveal>
+        </div>
+      </div>
+    </section>
+  );
+});
+
 // ─────────────────────────────────────────────
 // Main Landing Page
 // ─────────────────────────────────────────────
@@ -716,14 +860,6 @@ const LandingPage = () => {
   const expertisePagingTimerRef = useRef(null);
   const expertiseWheelAccumulatorRef = useRef(0);
   const expertiseWheelResetRef = useRef(null);
-  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
-  const [isProjectAutoPaused, setIsProjectAutoPaused] = useState(false);
-  const projectCount = projects.length;
-  const visibleProjectCount = Math.min(3, projectCount);
-  const visibleProjects = Array.from({ length: visibleProjectCount }, (_, offset) => {
-    const idx = (activeProjectIndex + offset) % Math.max(projectCount, 1);
-    return projects[idx];
-  });
 
   const bgY = useTransform(scrollY, [0, 1200], [0, 220]);
   const midY = useTransform(scrollY, [0, 1200], [0, 520]);
@@ -763,14 +899,6 @@ const LandingPage = () => {
       if (mouseFrameRef.current) cancelAnimationFrame(mouseFrameRef.current);
     };
   }, [mouseX, mouseY]);
-
-  useEffect(() => {
-    if (projectCount <= 1 || isProjectAutoPaused) return;
-    const timer = setInterval(() => {
-      setActiveProjectIndex((prev) => (prev + 1) % projectCount);
-    }, 3400);
-    return () => clearInterval(timer);
-  }, [projectCount, isProjectAutoPaused]);
 
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -812,9 +940,6 @@ const LandingPage = () => {
       expertisePagingLockRef.current = false;
     }, 900);
   };
-  const showNextProject = () => setActiveProjectIndex((prev) => (prev + 1) % projectCount);
-  const showPrevProject = () => setActiveProjectIndex((prev) => (prev - 1 + projectCount) % projectCount);
-
   useEffect(() => {
     return () => {
       clearTimeout(expertisePagingTimerRef.current);
@@ -970,7 +1095,7 @@ const LandingPage = () => {
                 <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="w-full">
                   <motion.div variants={fadeUp} className="inline-block mb-6">
                     <span className="py-1.5 px-4 border border-black/10 dark:border-white/20 rounded-full text-xs font-bold uppercase tracking-widest bg-white dark:bg-white/5 backdrop-blur-sm shadow-sm">
-                      Welcome to My Portfolio
+                      Trying to become a better Data Scientist
                     </span>
                   </motion.div>
                   <NeonSequence />
@@ -1075,125 +1200,7 @@ const LandingPage = () => {
       {/* ════════════════════════════════════════
           PROJECTS SECTION
       ════════════════════════════════════════ */}
-      <section id="projects" className="py-24 relative z-10 bg-background-light dark:bg-background-dark overflow-hidden">
-        <ParallaxLayer speed={0.4} className="absolute top-40 left-10 w-72 h-72 pointer-events-none">
-          <div className="w-full h-full bg-gradient-to-tr from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10 rounded-full blur-[120px] opacity-40" />
-        </ParallaxLayer>
-        <ParallaxLayer speed={0.55} className="absolute bottom-40 right-10 w-96 h-96 pointer-events-none">
-          <div className="w-full h-full bg-gradient-to-bl from-gray-100 to-gray-300 dark:from-gray-800 dark:to-black rounded-full blur-[150px] opacity-40" />
-        </ParallaxLayer>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-20">
-          <SectionLabel label="Selected Work" />
-          <div className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <div>
-              <ScrollReveal>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">Selected Work</h2>
-                <motion.div
-                  className="h-1 w-0 bg-black dark:bg-white mt-4"
-                  whileInView={{ width: 80 }}
-                  viewport={{ once: false }}
-                  transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                />
-              </ScrollReveal>
-            </div>
-            <ScrollReveal delay={0.1} direction="left">
-              <motion.a
-                href="https://github.com/SKYTAN-050107"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ x: 4 }}
-                className="hidden md:flex items-center gap-2 font-bold text-sm uppercase tracking-widest hover:text-accent-gray transition-colors cursor-pointer"
-              >
-                View All on GitHub <span className="material-icons-round text-base">arrow_forward</span>
-              </motion.a>
-            </ScrollReveal>
-          </div>
-
-          <div className="relative">
-            {projectCount > 1 && (
-              <div className="flex items-center justify-end gap-2 mb-4">
-                <button
-                  type="button"
-                  onClick={showPrevProject}
-                  className="w-10 h-10 rounded-full border border-black/10 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
-                  aria-label="Previous project"
-                >
-                  <span className="material-icons-round text-base">west</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={showNextProject}
-                  className="w-10 h-10 rounded-full border border-black/10 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
-                  aria-label="Next project"
-                >
-                  <span className="material-icons-round text-base">east</span>
-                </button>
-              </div>
-            )}
-
-            <div
-              className="overflow-hidden"
-              onMouseEnter={() => setIsProjectAutoPaused(true)}
-              onMouseLeave={() => setIsProjectAutoPaused(false)}
-              onFocusCapture={() => setIsProjectAutoPaused(true)}
-              onBlurCapture={() => setIsProjectAutoPaused(false)}
-            >
-              {projectCount > 0 && (
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={`project-window-${activeProjectIndex}`}
-                    initial={{ x: 140, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -140, opacity: 0 }}
-                    transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                    className="grid md:grid-cols-3 gap-8"
-                  >
-                    {visibleProjects.map((project, cardIndex) => (
-                      <ProjectCard
-                        key={`${project.id ?? cardIndex}-${activeProjectIndex}-${cardIndex}`}
-                        project={project}
-                        index={cardIndex}
-                      />
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
-              )}
-            </div>
-
-            {projectCount > 1 && (
-              <div className="mt-5 flex items-center justify-center gap-2">
-                {projects.map((project, i) => (
-                  <button
-                    key={project.id ?? i}
-                    type="button"
-                    onClick={() => setActiveProjectIndex(i)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      i === activeProjectIndex
-                        ? "w-8 bg-black dark:bg-white"
-                        : "w-2 bg-black/25 dark:bg-white/25 hover:bg-black/40 dark:hover:bg-white/40"
-                    }`}
-                    aria-label={`Show project ${i + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-12 md:hidden">
-            <ScrollReveal>
-              <a
-                href="https://github.com/SKYTAN-050107"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full py-4 border border-black/10 dark:border-white/20 rounded-full font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-center"
-              >
-                View All on GitHub
-              </a>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
+      <SelectedWorkSection />
 
       <Divider />
 
