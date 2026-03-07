@@ -711,6 +711,9 @@ const LandingPage = () => {
   const { scrollY, scrollYProgress } = useScroll();
   const mouseFrameRef = useRef(0);
   const latestMouseRef = useRef({ x: 0, y: 0 });
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [isProjectAutoPaused, setIsProjectAutoPaused] = useState(false);
+  const projectCount = projects.length;
 
   const bgY = useTransform(scrollY, [0, 1200], [0, 220]);
   const midY = useTransform(scrollY, [0, 1200], [0, 520]);
@@ -751,9 +754,19 @@ const LandingPage = () => {
     };
   }, [mouseX, mouseY]);
 
+  useEffect(() => {
+    if (projectCount <= 1 || isProjectAutoPaused) return;
+    const timer = setInterval(() => {
+      setActiveProjectIndex((prev) => (prev + 1) % projectCount);
+    }, 3400);
+    return () => clearInterval(timer);
+  }, [projectCount, isProjectAutoPaused]);
+
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const showNextProject = () => setActiveProjectIndex((prev) => (prev + 1) % projectCount);
+  const showPrevProject = () => setActiveProjectIndex((prev) => (prev - 1 + projectCount) % projectCount);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
@@ -1038,10 +1051,71 @@ const LandingPage = () => {
             </ScrollReveal>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {projects.map((project, i) => (
-              <ProjectCard key={project.id ?? i} project={project} index={i} />
-            ))}
+          <div className="relative">
+            {projectCount > 1 && (
+              <div className="flex items-center justify-end gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={showPrevProject}
+                  className="w-10 h-10 rounded-full border border-black/10 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                  aria-label="Previous project"
+                >
+                  <span className="material-icons-round text-base">west</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={showNextProject}
+                  className="w-10 h-10 rounded-full border border-black/10 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                  aria-label="Next project"
+                >
+                  <span className="material-icons-round text-base">east</span>
+                </button>
+              </div>
+            )}
+
+            <div
+              className="overflow-hidden"
+              onMouseEnter={() => setIsProjectAutoPaused(true)}
+              onMouseLeave={() => setIsProjectAutoPaused(false)}
+              onFocusCapture={() => setIsProjectAutoPaused(true)}
+              onBlurCapture={() => setIsProjectAutoPaused(false)}
+            >
+              {projectCount > 0 && (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={projects[activeProjectIndex]?.id ?? activeProjectIndex}
+                    initial={{ x: 140, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -140, opacity: 0 }}
+                    transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                    className="mx-auto w-full md:w-[31.5%] md:min-w-[320px] md:max-w-[420px]"
+                  >
+                    <ProjectCard
+                      project={projects[activeProjectIndex]}
+                      index={0}
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
+
+            {projectCount > 1 && (
+              <div className="mt-5 flex items-center justify-center gap-2">
+                {projects.map((project, i) => (
+                  <button
+                    key={project.id ?? i}
+                    type="button"
+                    onClick={() => setActiveProjectIndex(i)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i === activeProjectIndex
+                        ? "w-8 bg-black dark:bg-white"
+                        : "w-2 bg-black/25 dark:bg-white/25 hover:bg-black/40 dark:hover:bg-white/40"
+                    }`}
+                    aria-label={`Show project ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-12 md:hidden">
