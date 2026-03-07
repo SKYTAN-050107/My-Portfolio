@@ -719,6 +719,11 @@ const LandingPage = () => {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [isProjectAutoPaused, setIsProjectAutoPaused] = useState(false);
   const projectCount = projects.length;
+  const visibleProjectCount = Math.min(3, projectCount);
+  const visibleProjects = Array.from({ length: visibleProjectCount }, (_, offset) => {
+    const idx = (activeProjectIndex + offset) % Math.max(projectCount, 1);
+    return projects[idx];
+  });
 
   const bgY = useTransform(scrollY, [0, 1200], [0, 220]);
   const midY = useTransform(scrollY, [0, 1200], [0, 520]);
@@ -1137,17 +1142,20 @@ const LandingPage = () => {
               {projectCount > 0 && (
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
-                    key={projects[activeProjectIndex]?.id ?? activeProjectIndex}
+                    key={`project-window-${activeProjectIndex}`}
                     initial={{ x: 140, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -140, opacity: 0 }}
                     transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                    className="mx-auto w-full md:w-[31.5%] md:min-w-[320px] md:max-w-[420px]"
+                    className="grid md:grid-cols-3 gap-8"
                   >
-                    <ProjectCard
-                      project={projects[activeProjectIndex]}
-                      index={0}
-                    />
+                    {visibleProjects.map((project, cardIndex) => (
+                      <ProjectCard
+                        key={`${project.id ?? cardIndex}-${activeProjectIndex}-${cardIndex}`}
+                        project={project}
+                        index={cardIndex}
+                      />
+                    ))}
                   </motion.div>
                 </AnimatePresence>
               )}
