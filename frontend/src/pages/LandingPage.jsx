@@ -756,11 +756,11 @@ const SelectedWorkSection = React.memo(() => {
       </ParallaxLayer>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-20">
-        <SectionLabel label="Selected Work" />
+        <SectionLabel label="My Work" />
         <div className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <ScrollReveal>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">Selected Work</h2>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-black dark:text-white">List of Projects</h2>
               <motion.div
                 className="h-1 w-0 bg-black dark:bg-white mt-4"
                 whileInView={{ width: 80 }}
