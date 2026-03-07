@@ -10,6 +10,13 @@ export const contactInfo = {
   email: "skycode112324@example.com", 
 };
 
+export const socialLinks = {
+  instagram: "https://www.instagram.com/sytn05?igsh=N25ibWgxcnYyZmZu",
+  linkedin: "https://www.linkedin.com/in/tan-shi-kai-78937a359?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+  github: "https://github.com/SKYTAN-050107",
+  location: "Malaysia",
+};
+
 export const expertise = [
   {
     id: 1,

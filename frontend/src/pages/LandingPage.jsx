@@ -9,12 +9,13 @@ import {
   useVelocity,
   useAnimationFrame,
 } from "framer-motion";
+import { Instagram, Linkedin, Github, MapPin } from "lucide-react";
 import useDarkMode from "../hooks/useDarkMode";
 import DayNightToggle from "../components/DayNightToggle";
 import ScrollProgress from "../components/ScrollProgress";
 import ConstellationBg from "../components/ConstellationBg";
 import MatrixRain from "../components/MatrixRain";
-import { heroContent, expertise, projects, contactInfo } from "../data/portfolio";
+import { heroContent, expertise, projects, contactInfo, socialLinks } from "../data/portfolio";
 
 // ─────────────────────────────────────────────
 // Utility: wrap value between min and max
@@ -1072,21 +1073,40 @@ const LandingPage = () => {
                   className="flex items-center gap-3"
                 >
                   {[
-                    { icon: "language", href: "#" },
-                    { icon: "code", href: "#" },
-                    { icon: "camera_alt", href: "#" },
-                    { icon: "play_circle", href: "#" },
-                  ].map((social, i) => (
+                    { label: "Instagram", icon: Instagram, href: socialLinks.instagram, isLink: true },
+                    { label: "LinkedIn", icon: Linkedin, href: socialLinks.linkedin, isLink: true },
+                    { label: "GitHub", icon: Github, href: socialLinks.github, isLink: true },
+                    { label: socialLinks.location, icon: MapPin, isLink: false },
+                  ].map((social, i) =>
+                    social.isLink ? (
                     <motion.a
                       key={i}
                       href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       whileHover={{ scale: 1.15, y: -3 }}
+                      transition={{ duration: 0 }}
                       whileTap={{ scale: 0.9 }}
-                      className="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-200 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                      className="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-200 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-none"
+                      title={social.label}
+                      aria-label={social.label}
                     >
-                      <span className="material-icons-round text-lg">{social.icon}</span>
+                      <social.icon className="w-[18px] h-[18px]" strokeWidth={2} />
                     </motion.a>
-                  ))}
+                    ) : (
+                    <motion.div
+                      key={i}
+                      whileHover={{ scale: 1.15, y: -3 }}
+                      transition={{ duration: 0 }}
+                      className="h-10 px-3 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-1.5 text-gray-500 dark:text-gray-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-none cursor-default"
+                      title={social.label}
+                      aria-label={social.label}
+                    >
+                      <social.icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                      <span className="text-xs font-semibold uppercase tracking-wide">{social.label}</span>
+                    </motion.div>
+                    )
+                  )}
                 </motion.div>
               </div>
 
