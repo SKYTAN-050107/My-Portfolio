@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  AnimatePresence,
   motion,
   useScroll,
   useTransform,
@@ -263,7 +264,6 @@ const ProjectCard = ({ project, index }) => {
   const frameRef = useRef(0);
   const intervalRef = useRef(null);
   const latestPointerRef = useRef({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
   const [hasImageError, setHasImageError] = useState(false);
   const rotateX = useMotionValue(0);
@@ -275,21 +275,12 @@ const ProjectCard = ({ project, index }) => {
     : project.screenshot
       ? [project.screenshot]
       : [];
-
-  const startCycle = () => {
-    if (screenshots.length <= 1) return;
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setImgIndex((i) => (i + 1) % screenshots.length);
-    }, 800);
-  };
-
-  const stopCycle = () => {
-    clearInterval(intervalRef.current);
-    intervalRef.current = null;
-    setImgIndex(0);
-  };
-
+  const hasStackSlide = (project.stack || []).length > 0;
+  const totalSlides = screenshots.length + (hasStackSlide ? 1 : 0);
+  const isStackSlide = hasStackSlide && imgIndex === screenshots.length;
+  const normalSlideMs = 800;
+  const infoSlideMs = 1800;
+  
   const measureBounds = () => {
     const el = outerRef.current;
     if (!el) return;
@@ -313,14 +304,32 @@ const ProjectCard = ({ project, index }) => {
     }
   };
 
+  const startCycle = () => {
+    if (totalSlides <= 1) return;
+    clearTimeout(intervalRef.current);
+
+    const scheduleNext = () => {
+      const delay = isStackSlide ? infoSlideMs : normalSlideMs;
+      intervalRef.current = setTimeout(() => {
+        setImgIndex((i) => (i + 1) % totalSlides);
+      }, delay);
+    };
+
+    scheduleNext();
+  };
+
+  const stopCycle = () => {
+    clearTimeout(intervalRef.current);
+    intervalRef.current = null;
+    setImgIndex(0);
+  };
+
   const handleEnter = () => {
     measureBounds();
-    setIsHovered(true);
     startCycle();
   };
 
   const handleLeave = () => {
-    setIsHovered(false);
     stopCycle();
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
@@ -333,9 +342,18 @@ const ProjectCard = ({ project, index }) => {
   useEffect(() => {
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
-      clearInterval(intervalRef.current);
+      clearTimeout(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!intervalRef.current || totalSlides <= 1) return;
+    clearTimeout(intervalRef.current);
+    const delay = isStackSlide ? infoSlideMs : normalSlideMs;
+    intervalRef.current = setTimeout(() => {
+      setImgIndex((i) => (i + 1) % totalSlides);
+    }, delay);
+  }, [imgIndex, isStackSlide, totalSlides]);
 
   useEffect(() => {
     setHasImageError(false);
@@ -361,60 +379,84 @@ const ProjectCard = ({ project, index }) => {
           {/* ── Screenshot / Image Area ── */}
           <div className="aspect-[4/3] bg-gray-100 dark:bg-surface-dark rounded-2xl overflow-hidden mb-6 border border-black/5 dark:border-white/10">
             <div className="w-full h-full relative overflow-hidden" style={{ perspective: "1200px" }}>
-              <motion.div
-                className="relative w-full h-full"
-                style={{ transformStyle: "preserve-3d" }}
-                animate={{ rotateY: isHovered ? 180 : 0 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <div className="absolute inset-0 backface-hidden overflow-hidden">
-                  <div
-                    className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 z-10"
-                    style={{ skewX: "-20deg" }}
-                  />
-                  {screenshots.length > 0 && !hasImageError ? (
-                    <img
+              <div className="absolute inset-0 overflow-hidden">
+                <div
+                  className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 z-10"
+                  style={{ skewX: "-20deg" }}
+                />
+                {isStackSlide ? (
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`${project.id}-stack`}
+                      className="absolute inset-0 p-6 bg-black dark:bg-white flex flex-col justify-center"
+                      initial={{ opacity: 0, scale: 1.03 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                    >
+                      <p className="text-white dark:text-black font-bold text-lg mb-3">Project Details</p>
+                      <div className="flex items-center gap-2 mb-4">
+                        {project.role && (
+                          <span className="px-2.5 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
+                            {project.role}
+                          </span>
+                        )}
+                        {project.year && (
+                          <span className="px-2.5 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
+                            {project.year}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-white/80 dark:text-black/80 text-[11px] font-bold uppercase tracking-wider mb-2">
+                        Tech Stack
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {(project.stack || []).map((tech) => (
+                          <span
+                            key={`${project.id}-stack-${tech}`}
+                            className="px-3 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-xs font-bold"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                ) : screenshots.length > 0 && !hasImageError ? (
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={screenshots[imgIndex]}
                       src={screenshots[imgIndex]}
                       alt={`${project.title} screenshot ${imgIndex + 1}`}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                      className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                      initial={{ opacity: 0, scale: 1.03 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
                       onError={() => setHasImageError(true)}
                     />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-105 transition-transform duration-700 flex items-center justify-center relative">
-                      <project.icon className="w-12 h-12 text-gray-300 dark:text-gray-600" strokeWidth={1} />
-                    </div>
-                  )}
-                </div>
+                  </AnimatePresence>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-105 transition-transform duration-700 flex items-center justify-center relative">
+                    <project.icon className="w-12 h-12 text-gray-300 dark:text-gray-600" strokeWidth={1} />
+                  </div>
+                )}
+              </div>
 
-                <div
-                  className="absolute inset-0 backface-hidden bg-black dark:bg-white rounded-2xl p-6 flex flex-col justify-center"
-                  style={{ transform: "rotateY(180deg)" }}
-                >
-                  <p className="text-white dark:text-black font-bold text-lg mb-4">{project.title}</p>
-                  <div className="flex items-center gap-2 mb-3">
-                    {project.role && (
-                      <span className="px-2.5 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
-                        {project.role}
-                      </span>
-                    )}
-                    {project.year && (
-                      <span className="px-2.5 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
-                        {project.year}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(project.stack || []).map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-3 py-1 rounded-full bg-white/10 dark:bg-black/10 text-white dark:text-black text-xs font-bold"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
+              {totalSlides > 1 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/35 dark:bg-white/20 backdrop-blur-sm">
+                  {Array.from({ length: totalSlides }).map((_, i) => (
+                    <span
+                      key={`${project.id}-dot-${i}`}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        i === imgIndex
+                          ? "w-4 bg-white dark:bg-black"
+                          : "w-1.5 bg-white/60 dark:bg-black/60"
+                      }`}
+                    />
+                  ))}
                 </div>
-              </motion.div>
+              )}
             </div>
           </div>
 
