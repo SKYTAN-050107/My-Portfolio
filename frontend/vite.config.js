@@ -16,9 +16,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['pwa-192x192.svg', 'pwa-512x512.svg'],
       manifest: {
-        name: 'RecycleNow',
-        short_name: 'RecycleNow',
-        description: 'AI-Powered Smart Waste Management',
+        name: 'Skyx Portfolio',
+        short_name: 'Skyx',
+        description: 'Skyx portfolio website',
         theme_color: '#10b981',
         background_color: '#f6f8f6',
         display: 'standalone',
@@ -44,6 +44,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
         runtimeCaching: [
           {
