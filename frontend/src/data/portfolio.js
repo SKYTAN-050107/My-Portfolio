@@ -217,6 +217,88 @@ export const projects = [
   {
     id: 4,
     icon: Code,
+    title: "PermitIQ",
+    category: "AI · Permit Workflow",
+    description:
+      "AI permit application assistant with graph-based reasoning, workflow orchestration, and traceable evaluation.",
+    role: "AI Full Stack Developer",
+    year: "2026",
+    stack: ["React", "LangGraph", "LangSmith", "AI Agents", "RAG", "Python"],
+    github: "https://github.com/SKYTAN-050107/umhack2026",
+    screenshot: "/PermitIQ/Screenshot%202026-05-09%20at%204.33.03%E2%80%AFPM.png",
+    media: [
+      {
+        type: "video",
+        src: "/PermitIQ/5%E6%9C%883%E6%97%A5.mov",
+        alt: "PermitIQ demo video 1",
+        durationMs: 3200,
+      },
+      {
+        type: "video",
+        src: "/PermitIQ/5%E6%9C%883%E6%97%A5%20%281%29.mov",
+        alt: "PermitIQ demo video 2",
+        durationMs: 3200,
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.33.03%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 1",
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.33.13%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 2",
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.33.24%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 3",
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.33.51%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 4",
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.34.30%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 5",
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.35.42%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 6",
+      },
+      {
+        type: "image",
+        src: "/PermitIQ/Screenshot%202026-05-09%20at%204.35.53%E2%80%AFPM.png",
+        alt: "PermitIQ screenshot 7",
+      },
+    ],
+  },
+  {
+    id: 5,
+    icon: Code,
+    title: "VantageAI",
+    category: "AI · Analytics Platform",
+    description:
+      "AI-powered analytics prototype focused on turning complex signals into clearer decisions.",
+    role: "AI Full Stack Developer",
+    year: "2026",
+    stack: ["React", "Machine Learning", "Data Visualization"],
+    github: "https://github.com/SKYTAN-050107/VHack_VantageAI",
+    media: [
+      {
+        type: "video",
+        src: "/VantageAI/Untitled%20design.mp4",
+        alt: "VantageAI demo video",
+        durationMs: 3200,
+      },
+    ],
+  },
+  {
+    id: 6,
+    icon: Code,
     title: "Portfolio V1",
     category: "Personal",
     description: "The iteration before the monochrome shift.",
