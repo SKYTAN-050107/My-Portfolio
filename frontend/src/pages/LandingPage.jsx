@@ -271,22 +271,24 @@ const ProjectCard = ({ project, index }) => {
   const rotateY = useMotionValue(0);
   const springX = useSpring(rotateX, { stiffness: 200, damping: 20 });
   const springY = useSpring(rotateY, { stiffness: 200, damping: 20 });
-  const screenshots = useMemo(
-    () =>
-      project.screenshots?.length
-        ? project.screenshots
-        : project.screenshot
-          ? [project.screenshot]
-          : [],
-    [project.screenshot, project.screenshots]
-  );
+  const mediaItems = useMemo(() => {
+    if (project.media?.length) return project.media;
+    const screenshots = project.screenshots?.length
+      ? project.screenshots
+      : project.screenshot
+        ? [project.screenshot]
+        : [];
+    return screenshots.map((src) => ({ type: "image", src }));
+  }, [project.media, project.screenshot, project.screenshots]);
   const hasStackSlide = (project.stack || []).length > 0;
-  const totalSlides = screenshots.length + (hasStackSlide ? 1 : 0);
-  const isStackSlide = hasStackSlide && imgIndex === screenshots.length;
-  const currentImageSrc = screenshots[imgIndex];
-  const hasCurrentImageError = currentImageSrc ? failedImages.has(currentImageSrc) : false;
-  const normalSlideMs = 800;
+  const totalSlides = mediaItems.length + (hasStackSlide ? 1 : 0);
+  const isStackSlide = hasStackSlide && imgIndex === mediaItems.length;
+  const currentMedia = mediaItems[imgIndex];
+  const currentMediaSrc = currentMedia?.src;
+  const hasCurrentMediaError = currentMediaSrc ? failedImages.has(currentMediaSrc) : false;
+  const normalSlideMs = currentMedia?.durationMs ?? (currentMedia?.type === "video" ? 3000 : 800);
   const infoSlideMs = 1800;
+  const usesContainedPreview = project.previewFit === "contain";
   
   const measureBounds = () => {
     const el = outerRef.current;
@@ -360,11 +362,7 @@ const ProjectCard = ({ project, index }) => {
     intervalRef.current = setTimeout(() => {
       setImgIndex((i) => (i + 1) % totalSlides);
     }, delay);
-  }, [imgIndex, isStackSlide, totalSlides]);
-
-  useEffect(() => {
-    setFailedImages(new Set());
-  }, [project.id]);
+  }, [imgIndex, isStackSlide, normalSlideMs, totalSlides]);
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
@@ -429,27 +427,65 @@ const ProjectCard = ({ project, index }) => {
                       </div>
                     </motion.div>
                   </AnimatePresence>
-                ) : screenshots.length > 0 && !hasCurrentImageError ? (
+                ) : mediaItems.length > 0 && currentMedia && !hasCurrentMediaError ? (
                   <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentImageSrc}
-                      src={currentImageSrc}
-                      alt={`${project.title} screenshot ${imgIndex + 1}`}
-                      className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                    <motion.div
+                      key={currentMediaSrc}
+                      className={
+                        usesContainedPreview
+                          ? "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-zinc-100 p-4 dark:from-emerald-950/20 dark:via-zinc-950 dark:to-black"
+                          : "absolute inset-0"
+                      }
                       initial={{ opacity: 0, scale: 1.03 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.35, ease: "easeOut" }}
-                      onError={() => {
-                        if (!currentImageSrc) return;
-                        setFailedImages((prev) => {
-                          if (prev.has(currentImageSrc)) return prev;
-                          const next = new Set(prev);
-                          next.add(currentImageSrc);
-                          return next;
-                        });
-                      }}
-                    />
+                    >
+                      {currentMedia.type === "video" ? (
+                        <video
+                          src={currentMediaSrc}
+                          aria-label={currentMedia.alt ?? `${project.title} demo video`}
+                          className={
+                            usesContainedPreview
+                              ? "h-full max-h-full w-auto max-w-full rounded-[1.5rem] object-contain shadow-2xl ring-1 ring-black/10 transition-transform duration-700 group-hover:scale-105 dark:ring-white/15"
+                              : "absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                          }
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          onError={() => {
+                            if (!currentMediaSrc) return;
+                            setFailedImages((prev) => {
+                              if (prev.has(currentMediaSrc)) return prev;
+                              const next = new Set(prev);
+                              next.add(currentMediaSrc);
+                              return next;
+                            });
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={currentMediaSrc}
+                          alt={currentMedia.alt ?? `${project.title} screenshot ${imgIndex + 1}`}
+                          className={
+                            usesContainedPreview
+                              ? "h-full max-h-full w-auto max-w-full rounded-[1.5rem] object-contain shadow-2xl ring-1 ring-black/10 transition-transform duration-700 group-hover:scale-105 dark:ring-white/15"
+                              : "absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                          }
+                          onError={() => {
+                            if (!currentMediaSrc) return;
+                            setFailedImages((prev) => {
+                              if (prev.has(currentMediaSrc)) return prev;
+                              const next = new Set(prev);
+                              next.add(currentMediaSrc);
+                              return next;
+                            });
+                          }}
+                        />
+                      )}
+                    </motion.div>
                   </AnimatePresence>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-black group-hover:scale-105 transition-transform duration-700 flex items-center justify-center relative">
@@ -486,18 +522,20 @@ const ProjectCard = ({ project, index }) => {
             </div>
 
             {/* ── GitHub arrow button ── */}
-            <motion.a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ rotate: 45, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 400 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors flex-shrink-0"
-              title={`View ${project.title} on GitHub`}
-            >
-              <span className="material-icons-round text-sm">arrow_outward</span>
-            </motion.a>
+            {project.github && (
+              <motion.a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ rotate: 45, scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 400 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors flex-shrink-0"
+                title={`View ${project.title} on GitHub`}
+              >
+                <span className="material-icons-round text-sm">arrow_outward</span>
+              </motion.a>
+            )}
           </div>
 
           {/* ── Live / GitHub badge row ── */}

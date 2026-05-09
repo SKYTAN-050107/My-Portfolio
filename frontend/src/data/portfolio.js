@@ -1,4 +1,4 @@
-import { Code, Server, Layout, Smartphone, Globe, Layers, Database } from "lucide-react";
+import { Code, Server, Layout, Smartphone, Globe, Layers, Database, Sprout } from "lucide-react";
 
 export const heroContent = {
   name: "SKY",
@@ -98,6 +98,124 @@ export const projects = [
   },
   {
     id: 3,
+    icon: Sprout,
+    title: "AcreZen",
+    category: "AI · Agriculture PWA",
+    description:
+      "AI field assistant for Malaysian farmers that moves from chat to action.",
+    role: "AI Full Stack Developer",
+    year: "2026 May",
+    stack: ["React", "AI Vision", "RAG", "Multi-Agent Workflow", "Firebase"],
+    github: "https://github.com/SKYTAN-050107/Future-AI-Hack",
+    live: "https://ragsystem-492216.web.app",
+    screenshot: "/AcreZen/Screenshot_20260509_155024_com_android_chrome_SameTaskWebApkActivity.jpg",
+    previewFit: "contain",
+    media: [
+      {
+        type: "video",
+        src: "/AcreZen/HnVideoEditor_2026_05_09_160027096.mp4",
+        alt: "AcreZen mobile app demo",
+        durationMs: 3200,
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155024_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 1",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155042_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 2",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155047_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 3",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155053_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 4",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155102_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 5",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155111_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 6",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155117_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 7",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155142_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 8",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155152_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 9",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155158_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 10",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155202_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 11",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155210_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 12",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155559_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 13",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155718_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 14",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155734_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 15",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155743_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 16",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155747_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 17",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155852_com_android_chrome_SameTaskWebApkActivity.jpg",
+        alt: "AcreZen screenshot 18",
+      },
+      {
+        type: "image",
+        src: "/AcreZen/Screenshot_20260509_155917710.jpg",
+        alt: "AcreZen screenshot 19",
+      },
+    ],
+  },
+  {
+    id: 4,
     icon: Code,
     title: "Portfolio V1",
     category: "Personal",
