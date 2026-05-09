@@ -264,6 +264,8 @@ const ProjectCard = ({ project, index }) => {
   const boundsRef = useRef(null);
   const frameRef = useRef(0);
   const intervalRef = useRef(null);
+  const isPreviewHoveredRef = useRef(false);
+  const activeVideoRef = useRef(null);
   const latestPointerRef = useRef({ x: 0, y: 0 });
   const [imgIndex, setImgIndex] = useState(0);
   const [failedImages, setFailedImages] = useState(() => new Set());
@@ -289,6 +291,7 @@ const ProjectCard = ({ project, index }) => {
   const normalSlideMs = currentMedia?.durationMs ?? (currentMedia?.type === "video" ? 3000 : 800);
   const infoSlideMs = 1800;
   const usesContainedPreview = project.previewFit === "contain";
+  const isCurrentVideoSlide = currentMedia?.type === "video" && !isStackSlide;
   
   const measureBounds = () => {
     const el = outerRef.current;
@@ -316,6 +319,10 @@ const ProjectCard = ({ project, index }) => {
   const startCycle = () => {
     if (totalSlides <= 1) return;
     clearTimeout(intervalRef.current);
+    if (isPreviewHoveredRef.current && isCurrentVideoSlide) {
+      intervalRef.current = null;
+      return;
+    }
 
     const scheduleNext = () => {
       const delay = isStackSlide ? infoSlideMs : normalSlideMs;
@@ -348,6 +355,22 @@ const ProjectCard = ({ project, index }) => {
     rotateY.set(0);
   };
 
+  const handlePreviewEnter = () => {
+    isPreviewHoveredRef.current = true;
+    if (!isCurrentVideoSlide) return;
+    clearTimeout(intervalRef.current);
+    intervalRef.current = null;
+    if (activeVideoRef.current) {
+      activeVideoRef.current.currentTime = 0;
+      activeVideoRef.current.play().catch(() => {});
+    }
+  };
+
+  const handlePreviewLeave = () => {
+    isPreviewHoveredRef.current = false;
+    startCycle();
+  };
+
   useEffect(() => {
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
@@ -358,11 +381,15 @@ const ProjectCard = ({ project, index }) => {
   useEffect(() => {
     if (!intervalRef.current || totalSlides <= 1) return;
     clearTimeout(intervalRef.current);
+    if (isPreviewHoveredRef.current && isCurrentVideoSlide) {
+      intervalRef.current = null;
+      return;
+    }
     const delay = isStackSlide ? infoSlideMs : normalSlideMs;
     intervalRef.current = setTimeout(() => {
       setImgIndex((i) => (i + 1) % totalSlides);
     }, delay);
-  }, [imgIndex, isStackSlide, normalSlideMs, totalSlides]);
+  }, [imgIndex, isCurrentVideoSlide, isStackSlide, normalSlideMs, totalSlides]);
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
@@ -382,7 +409,13 @@ const ProjectCard = ({ project, index }) => {
           className="group relative cursor-pointer h-full"
         >
           {/* ── Screenshot / Image Area ── */}
-          <div className="aspect-[4/3] bg-gray-100 dark:bg-surface-dark rounded-2xl overflow-hidden mb-6 border border-black/5 dark:border-white/10">
+          <div
+            className="aspect-[4/3] bg-gray-100 dark:bg-surface-dark rounded-2xl overflow-hidden mb-6 border border-black/5 dark:border-white/10"
+            onMouseEnter={handlePreviewEnter}
+            onMouseLeave={handlePreviewLeave}
+            onFocus={handlePreviewEnter}
+            onBlur={handlePreviewLeave}
+          >
             <div className="w-full h-full relative overflow-hidden" style={{ perspective: "1200px" }}>
               <div className="absolute inset-0 overflow-hidden">
                 <div
@@ -443,6 +476,7 @@ const ProjectCard = ({ project, index }) => {
                     >
                       {currentMedia.type === "video" ? (
                         <video
+                          ref={activeVideoRef}
                           src={currentMediaSrc}
                           aria-label={currentMedia.alt ?? `${project.title} demo video`}
                           className={
@@ -822,7 +856,13 @@ const SelectedWorkSection = React.memo(() => {
 
         <div className="relative">
           {projectCount > 1 && (
-            <div className="flex items-center justify-end gap-2 mb-4">
+            <div
+              className="flex items-center justify-end gap-2 mb-4"
+              onMouseEnter={() => setIsProjectAutoPaused(true)}
+              onMouseLeave={() => setIsProjectAutoPaused(false)}
+              onFocusCapture={() => setIsProjectAutoPaused(true)}
+              onBlurCapture={() => setIsProjectAutoPaused(false)}
+            >
               <button
                 type="button"
                 onClick={showPrevProject}
