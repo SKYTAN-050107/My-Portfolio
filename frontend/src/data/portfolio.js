@@ -296,23 +296,4 @@ export const projects = [
       },
     ],
   },
-  {
-    id: 6,
-    icon: Code,
-    title: "Portfolio V1",
-    category: "Personal",
-    description: "The iteration before the monochrome shift.",
-    role: "Designer + Frontend",
-    year: "2024",
-    stack: ["React", "TailwindCSS", "Framer Motion"],
-    github: "https://github.com/SKYTAN-050107/portfolio-v1",
-    live: "https://example.com/portfolio-v1",
-    screenshot: "https://placehold.co/1280x960/111827/ffffff?text=Portfolio+V1+-+Hero",
-    screenshots: [
-      "https://placehold.co/1280x960/111827/ffffff?text=Portfolio+V1+-+Hero",
-      "https://placehold.co/1280x960/1f2937/ffffff?text=Portfolio+V1+-+Projects",
-      "https://placehold.co/1280x960/374151/ffffff?text=Portfolio+V1+-+About",
-      "https://placehold.co/1280x960/4b5563/ffffff?text=Portfolio+V1+-+Contact",
-    ],
-  },
 ];
