@@ -18,6 +18,8 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
     const ctx = canvas.getContext("2d");
 
     let raf = 0;
+    let lastDraw = 0;
+    const frameInterval = 90;
     let isVisible = true;
     let isInViewport = true;
     let width = 0;
@@ -28,11 +30,12 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
       const rect = canvas.parentElement.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      canvas.width = width * devicePixelRatio;
-      canvas.height = height * devicePixelRatio;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
-      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     };
 
     const init = () => {
@@ -46,11 +49,13 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
       }));
     };
 
-    const draw = () => {
+    const draw = (now = 0) => {
+      raf = requestAnimationFrame(draw);
       if (!isVisible || !isInViewport) {
-        raf = requestAnimationFrame(draw);
         return;
       }
+      if (now - lastDraw < frameInterval) return;
+      lastDraw = now;
 
       ctx.clearRect(0, 0, width, height);
       const isDark = document.documentElement.classList.contains("dark");
@@ -87,8 +92,6 @@ export default function ConstellationBg({ particleCount = 50, className = "" }) 
           }
         }
       }
-
-      raf = requestAnimationFrame(draw);
     };
 
     const handleVisibilityChange = () => {

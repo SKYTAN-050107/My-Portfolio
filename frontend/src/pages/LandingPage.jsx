@@ -6,8 +6,6 @@ import {
   useTransform,
   useMotionValue,
   useSpring,
-  useVelocity,
-  useAnimationFrame,
 } from "framer-motion";
 import { Instagram, Linkedin, Github, MapPin } from "lucide-react";
 import useDarkMode from "../hooks/useDarkMode";
@@ -16,14 +14,6 @@ import ScrollProgress from "../components/ScrollProgress";
 import ConstellationBg from "../components/ConstellationBg";
 import MatrixRain from "../components/MatrixRain";
 import { heroContent, expertise, projects, contactInfo, socialLinks } from "../data/portfolio";
-
-// ─────────────────────────────────────────────
-// Utility: wrap value between min and max
-// ─────────────────────────────────────────────
-function wrap(min, max, v) {
-  const range = max - min;
-  return ((((v - min) % range) + range) % range) + min;
-}
 
 // ─────────────────────────────────────────────
 // Animated Name: each letter lifts on hover
@@ -59,15 +49,15 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
   const variants = {
     hidden: {
       opacity: 0,
-      y: direction === "up" ? 60 : direction === "down" ? -60 : 0,
-      x: direction === "left" ? 60 : direction === "right" ? -60 : 0,
+      y: direction === "up" ? 32 : direction === "down" ? -32 : 0,
+      x: direction === "left" ? 32 : direction === "right" ? -32 : 0,
     },
     visible: {
       opacity: 1,
       y: 0,
       x: 0,
       transition: {
-        duration: 0.75,
+        duration: 0.45,
         delay,
         ease: [0.16, 1, 0.3, 1],
       },
@@ -79,7 +69,7 @@ const ScrollReveal = ({ children, delay = 0, direction = "up", className = "" })
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, margin: "-10% 0px -10% 0px", amount: 0.55 }}
+      viewport={{ once: true, margin: "-8% 0px", amount: 0.35 }}
       variants={variants}
     >
       {children}
@@ -114,20 +104,20 @@ const repeatedSkills = [...skills, ...skills, ...skills, ...skills];
 const VelocityMarquee = ({ baseVelocity = 3 }) => {
   const containerRef = useRef(null);
   const isActiveRef = useRef(true);
-  const baseX = useMotionValue(0);
-  const { scrollY } = useScroll();
-  const scrollVelocity = useVelocity(scrollY);
-  const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
-  const velocityFactor = useTransform(smoothVelocity, [-3000, 3000], [-5, 5]);
-  const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
-  const directionFactor = useRef(1);
+  const duration = `${Math.max(18, 70 / Math.max(baseVelocity, 1))}s`;
 
   useEffect(() => {
     const marqueeEl = containerRef.current;
     if (!marqueeEl) return;
-    const handleVisibilityChange = () => { isActiveRef.current = !document.hidden; };
+    const setAnimationState = () => {
+      marqueeEl.style.animationPlayState = isActiveRef.current && !document.hidden ? "running" : "paused";
+    };
+    const handleVisibilityChange = () => setAnimationState();
     const observer = new IntersectionObserver(
-      ([entry]) => { isActiveRef.current = entry.isIntersecting && !document.hidden; },
+      ([entry]) => {
+        isActiveRef.current = entry.isIntersecting;
+        setAnimationState();
+      },
       { threshold: 0.01 }
     );
     observer.observe(marqueeEl);
@@ -138,25 +128,16 @@ const VelocityMarquee = ({ baseVelocity = 3 }) => {
     };
   }, []);
 
-  useAnimationFrame((_, delta) => {
-    if (!isActiveRef.current) return;
-    let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
-    if (velocityFactor.get() < 0) directionFactor.current = -1;
-    else if (velocityFactor.get() > 0) directionFactor.current = 1;
-    moveBy += directionFactor.current * moveBy * velocityFactor.get();
-    baseX.set(baseX.get() + moveBy);
-  });
-
   return (
     <div ref={containerRef} className="overflow-hidden py-3 border-y border-black/8 dark:border-white/8 bg-white/50 dark:bg-black/20 backdrop-blur-sm">
-      <motion.div style={{ x }} className="flex whitespace-nowrap gap-0">
+      <div className="marquee-track flex whitespace-nowrap gap-0 will-change-transform" style={{ animationDuration: duration }}>
         {repeatedSkills.map((skill, i) => (
           <span key={i} className="inline-block px-6 text-sm font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
             {skill}
             <span className="ml-6 text-gray-200 dark:text-gray-700">·</span>
           </span>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -245,7 +226,7 @@ const ExpertiseCard = ({ item, index }) => (
           className="text-3xl font-black text-black dark:text-white"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          viewport={{ once: false }}
+          viewport={{ once: true }}
           transition={{ delay: 0.3 + index * 0.08 }}
         >
           {item.stat}
@@ -269,6 +250,8 @@ const ProjectCard = ({ project, index }) => {
   const latestPointerRef = useRef({ x: 0, y: 0 });
   const [imgIndex, setImgIndex] = useState(0);
   const [failedImages, setFailedImages] = useState(() => new Set());
+  const [isCardActive, setIsCardActive] = useState(false);
+  const [isPreviewActive, setIsPreviewActive] = useState(false);
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
   const springX = useSpring(rotateX, { stiffness: 200, damping: 20 });
@@ -342,11 +325,15 @@ const ProjectCard = ({ project, index }) => {
 
   const handleEnter = () => {
     measureBounds();
+    setIsCardActive(true);
     startCycle();
   };
 
   const handleLeave = () => {
+    setIsCardActive(false);
+    setIsPreviewActive(false);
     stopCycle();
+    activeVideoRef.current?.pause();
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
@@ -357,6 +344,7 @@ const ProjectCard = ({ project, index }) => {
 
   const handlePreviewEnter = () => {
     isPreviewHoveredRef.current = true;
+    setIsPreviewActive(true);
     if (!isCurrentVideoSlide) return;
     clearTimeout(intervalRef.current);
     intervalRef.current = null;
@@ -368,6 +356,7 @@ const ProjectCard = ({ project, index }) => {
 
   const handlePreviewLeave = () => {
     isPreviewHoveredRef.current = false;
+    setIsPreviewActive(false);
     startCycle();
   };
 
@@ -390,6 +379,15 @@ const ProjectCard = ({ project, index }) => {
       setImgIndex((i) => (i + 1) % totalSlides);
     }, delay);
   }, [imgIndex, isCurrentVideoSlide, isStackSlide, normalSlideMs, totalSlides]);
+
+  useEffect(() => {
+    if (!isCurrentVideoSlide || !activeVideoRef.current) return;
+    if (isCardActive || isPreviewActive) {
+      activeVideoRef.current.play().catch(() => {});
+    } else {
+      activeVideoRef.current.pause();
+    }
+  }, [currentMediaSrc, isCardActive, isCurrentVideoSlide, isPreviewActive]);
 
   return (
     <ScrollReveal delay={index * 0.12} direction="up">
@@ -484,7 +482,7 @@ const ProjectCard = ({ project, index }) => {
                               ? "h-full max-h-full w-auto max-w-full rounded-[1.5rem] object-contain shadow-2xl ring-1 ring-black/10 transition-transform duration-700 group-hover:scale-105 dark:ring-white/15"
                               : "absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                           }
-                          autoPlay
+                          autoPlay={isCardActive || isPreviewActive}
                           muted
                           loop
                           playsInline
@@ -651,9 +649,7 @@ const journeyData = [
 ];
 
 const JourneyCardInner = ({ item }) => (
-  <motion.div
-    whileHover={{ y: -4 }}
-    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+  <div
     className="relative bg-white dark:bg-surface-dark border border-black/5 dark:border-white/10 hover:border-emerald-400/40 rounded-2xl p-6 shadow-sm hover:shadow-emerald-500/10 hover:shadow-lg transition-all duration-300 group"
   >
     <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -671,86 +667,51 @@ const JourneyCardInner = ({ item }) => (
         </span>
       ))}
     </div>
-  </motion.div>
+  </div>
 );
 
 const JourneyCard = ({ item, index }) => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.95", "center 0.45"],
-  });
-
   const isLeft = index % 2 === 0;
-  const cardXRaw = useTransform(scrollYProgress, [0.18, 0.9], [isLeft ? -56 : 56, 0]);
-  const cardOpacityRaw = useTransform(scrollYProgress, [0.12, 0.7], [0, 1]);
-  const lineProgressRaw = useTransform(scrollYProgress, [0.02, 0.98], [0, 1]);
-  const mobileCardXRaw = useTransform(scrollYProgress, [0.2, 0.9], [40, 0]);
-
-  const cardX = useSpring(cardXRaw, { stiffness: 120, damping: 24, mass: 0.45 });
-  const cardOpacity = useSpring(cardOpacityRaw, { stiffness: 140, damping: 26, mass: 0.4 });
-  const lineProgress = useSpring(lineProgressRaw, { stiffness: 132, damping: 26, mass: 0.44 });
-  const lineHeight = useTransform(lineProgress, [0, 1], ["0%", "100%"]);
-  const mobileCardX = useSpring(mobileCardXRaw, { stiffness: 120, damping: 24, mass: 0.45 });
 
   return (
-    <div ref={ref} className="relative flex items-start mb-0">
+    <div className="relative flex items-start mb-0">
       <div className="hidden md:block w-[calc(50%-32px)] pr-8">
         {isLeft && (
-          <motion.div style={{ x: cardX, opacity: cardOpacity }}>
+          <ScrollReveal delay={index * 0.06} direction="up">
             <JourneyCardInner item={item} />
-          </motion.div>
+          </ScrollReveal>
         )}
       </div>
       <div className="hidden md:flex flex-col items-center flex-shrink-0 w-16">
         {index < journeyData.length - 1 && (
-          <div className="relative w-[3px] h-44 bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
-            <motion.div
-              style={{ height: lineHeight }}
-              className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]"
-            />
-          </div>
+          <div className="relative w-[3px] h-44 bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 rounded-full shadow-[0_0_6px_rgba(16,185,129,0.25)]" />
         )}
       </div>
       <div className="hidden md:block w-[calc(50%-32px)] pl-8">
         {!isLeft && (
-          <motion.div style={{ x: cardX, opacity: cardOpacity }}>
+          <ScrollReveal delay={index * 0.06} direction="up">
             <JourneyCardInner item={item} />
-          </motion.div>
+          </ScrollReveal>
         )}
       </div>
       <div className="flex md:hidden items-start gap-4 w-full pb-12">
         <div className="flex flex-col items-center flex-shrink-0">
           {index < journeyData.length - 1 && (
-            <div className="relative w-[3px] flex-1 min-h-[180px] bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
-              <motion.div
-                style={{ height: lineHeight }}
-                className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]"
-              />
-            </div>
+            <div className="relative w-[3px] flex-1 min-h-[180px] bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 rounded-full shadow-[0_0_6px_rgba(16,185,129,0.25)]" />
           )}
         </div>
-        <motion.div style={{ x: mobileCardX, opacity: cardOpacity }} className="flex-1 pt-1">
+        <ScrollReveal delay={index * 0.06} direction="up" className="flex-1 pt-1">
           <JourneyCardInner item={item} />
-        </motion.div>
+        </ScrollReveal>
       </div>
     </div>
   );
 };
 
 const JourneySection = () => {
-  const sectionRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "start 0.3"],
-  });
-  const capProgressRaw = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const capProgress = useSpring(capProgressRaw, { stiffness: 132, damping: 26, mass: 0.44 });
-  const capHeight = useTransform(capProgress, [0, 1], ["0%", "100%"]);
-
   return (
-    <section id="journey" ref={sectionRef} className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
+    <section id="journey" className="py-24 bg-background-light dark:bg-background-dark relative z-10 overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-emerald-500/5 rounded-full blur-[70px] pointer-events-none" />
       <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="text-center mb-20">
           <ScrollReveal>
@@ -769,9 +730,7 @@ const JourneySection = () => {
         </div>
         <div className="relative">
           <div className="flex justify-center mb-0">
-            <div className="relative w-[3px] h-12 bg-gray-200/90 dark:bg-gray-800/90 rounded-full overflow-hidden">
-              <motion.div style={{ height: capHeight }} className="absolute top-0 left-0 w-full bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.45)]" />
-            </div>
+            <div className="relative w-[3px] h-12 bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 rounded-full shadow-[0_0_6px_rgba(16,185,129,0.25)]" />
           </div>
           <div className="flex flex-col items-center">
             {journeyData.map((item, i) => (
@@ -836,7 +795,7 @@ const SelectedWorkSection = React.memo(() => {
               <motion.div
                 className="h-1 w-0 bg-black dark:bg-white mt-4"
                 whileInView={{ width: 80 }}
-                viewport={{ once: false }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               />
             </ScrollReveal>
@@ -953,8 +912,6 @@ const SelectedWorkSection = React.memo(() => {
 const LandingPage = () => {
   const { isDark, toggleDarkMode } = useDarkMode();
   const { scrollY, scrollYProgress } = useScroll();
-  const mouseFrameRef = useRef(0);
-  const latestMouseRef = useRef({ x: 0, y: 0 });
   const expertiseSectionRef = useRef(null);
   const expertisePagingLockRef = useRef(false);
   const expertisePagingTimerRef = useRef(null);
@@ -963,42 +920,10 @@ const LandingPage = () => {
 
   const bgY = useTransform(scrollY, [0, 1200], [0, 220]);
   const midY = useTransform(scrollY, [0, 1200], [0, 520]);
-  const heroCardY = useTransform(scrollY, [0, 500], [0, -80]);
-  const heroCardOpacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const heroCardScale = useTransform(scrollY, [0, 400], [1, 0.96]);
-  const smoothHeroCardY = useSpring(heroCardY, { stiffness: 180, damping: 30, mass: 0.35 });
-  const smoothHeroCardOpacity = useSpring(heroCardOpacity, { stiffness: 220, damping: 35, mass: 0.25 });
-  const smoothHeroCardScale = useSpring(heroCardScale, { stiffness: 200, damping: 32, mass: 0.3 });
   const scrollHintOpacity = useTransform(scrollY, [0, 120], [1, 0]);
 
   const navBg = useTransform(scrollYProgress, [0, 0.05], ["rgba(255,255,255,0)", "rgba(255,255,255,0.85)"]);
   const navBlur = useTransform(scrollYProgress, [0, 0.05], [0, 12]);
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const smoothMX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const smoothMY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-  const glowX = useTransform(smoothMX, [-1, 1], [-40, 40]);
-  const glowY = useTransform(smoothMY, [-1, 1], [-40, 40]);
-
-  useEffect(() => {
-    const applyMouseParallax = () => {
-      mouseFrameRef.current = 0;
-      mouseX.set((latestMouseRef.current.x / window.innerWidth - 0.5) * 2);
-      mouseY.set((latestMouseRef.current.y / window.innerHeight - 0.5) * 2);
-    };
-    const handleMouseMove = (e) => {
-      latestMouseRef.current = { x: e.clientX, y: e.clientY };
-      if (!mouseFrameRef.current) {
-        mouseFrameRef.current = requestAnimationFrame(applyMouseParallax);
-      }
-    };
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      if (mouseFrameRef.current) cancelAnimationFrame(mouseFrameRef.current);
-    };
-  }, [mouseX, mouseY]);
 
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1048,8 +973,8 @@ const LandingPage = () => {
   }, []);
 
   const fadeUp = {
-    hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
-    visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
+    hidden: { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
   };
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -1101,41 +1026,36 @@ const LandingPage = () => {
       ════════════════════════════════════════ */}
       <header className="relative pt-28 pb-20 lg:pt-36 lg:pb-32 flex justify-center items-center min-h-[90vh] overflow-hidden">
         <motion.div style={{ y: bgY }} className="absolute inset-0 z-0 pointer-events-none">
-          <ConstellationBg particleCount={60} />
+          <ConstellationBg particleCount={32} />
         </motion.div>
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 w-full">
-          <motion.div
-            style={{ y: smoothHeroCardY, opacity: smoothHeroCardOpacity, scale: smoothHeroCardScale }}
-            className="relative w-full group mx-auto transform-gpu will-change-transform"
-          >
+          <div className="relative w-full group mx-auto">
             <motion.div
-              style={{ y: midY, x: glowX }}
-              className="absolute -top-20 -right-20 w-96 h-[32rem] bg-gradient-to-b from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-full blur-[100px] pointer-events-none opacity-60 transform-gpu will-change-transform"
+              style={{ y: midY }}
+              className="absolute -top-20 -right-20 w-80 h-[28rem] bg-gradient-to-b from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-full blur-[70px] pointer-events-none opacity-45 transform-gpu will-change-transform"
             />
             <motion.div
-              style={{ y: midY, x: glowY }}
-              className="absolute -bottom-20 -left-20 w-96 h-[32rem] bg-gradient-to-t from-gray-300 to-gray-200 dark:from-gray-900 dark:to-gray-800 rounded-full blur-[100px] pointer-events-none opacity-60 transform-gpu will-change-transform"
+              style={{ y: midY }}
+              className="absolute -bottom-20 -left-20 w-80 h-[28rem] bg-gradient-to-t from-gray-300 to-gray-200 dark:from-gray-900 dark:to-gray-800 rounded-full blur-[70px] pointer-events-none opacity-45 transform-gpu will-change-transform"
             />
-            <div className="absolute -inset-6 rounded-[3rem] bg-emerald-500/20 blur-3xl pointer-events-none" />
+            <div className="absolute -inset-6 rounded-[3rem] bg-emerald-500/10 blur-2xl pointer-events-none" />
 
             {/* Unified Card */}
             <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-2xl shadow-black/10 dark:shadow-white/5 border border-black/5 dark:border-white/10 relative z-10 overflow-hidden flex flex-col md:flex-row items-stretch p-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-xl shadow-black/10 dark:shadow-white/5 border border-black/5 dark:border-white/10 relative z-10 overflow-hidden flex flex-col md:flex-row items-stretch p-0"
             >
               <div className="absolute -top-12 -left-12 w-64 h-64 border-[3px] border-emerald-400/30 border-dashed rounded-full pointer-events-none" />
 
               {/* Left: Profile */}
               <div className="w-full md:w-2/5 relative z-20 flex flex-col items-center justify-center p-8 border-b md:border-b-0 md:border-r border-black/5 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
                 <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                   className="relative flex justify-center items-center mb-6"
                 >
-                  <div className="absolute w-56 h-56 md:w-72 md:h-72 rounded-full bg-emerald-500/20 blur-3xl" />
+                  <div className="absolute w-52 h-52 md:w-64 md:h-64 rounded-full bg-emerald-500/12 blur-2xl" />
                   <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-emerald-500 p-[3px] shadow-lg shadow-emerald-500/30">
                     <div className="w-full h-full rounded-full bg-black flex items-end justify-center overflow-hidden">
                       <img
@@ -1255,7 +1175,7 @@ const LandingPage = () => {
 
               <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 border-t-[3px] border-r-[3px] border-emerald-400/40 border-dashed rounded-tr-[3rem] pointer-events-none opacity-50" />
             </motion.div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Scroll hint */}
@@ -1264,13 +1184,9 @@ const LandingPage = () => {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
         >
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-5 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-start justify-center pt-1.5"
-          >
+          <div className="w-5 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-start justify-center pt-1.5">
             <div className="w-1 h-2 bg-gray-400 rounded-full" />
-          </motion.div>
+          </div>
         </motion.div>
       </header>
 
@@ -1290,7 +1206,7 @@ const LandingPage = () => {
         onWheel={handleExpertisePaging}
         className="min-h-screen py-16 md:py-20 bg-surface-light dark:bg-surface-dark relative z-10 overflow-hidden flex items-center"
       >
-        <ParallaxLayer speed={0.25} className="absolute -top-32 -bottom-32 left-0 right-0 pointer-events-none">
+        <ParallaxLayer speed={0.12} className="absolute -top-32 -bottom-32 left-0 right-0 pointer-events-none">
           <MatrixRain fontSize={14} />
         </ParallaxLayer>
         <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -1301,7 +1217,7 @@ const LandingPage = () => {
               <motion.div
                 className="h-1 w-0 bg-black dark:bg-white mt-4"
                 whileInView={{ width: 80 }}
-                viewport={{ once: false }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               />
             </ScrollReveal>
@@ -1327,15 +1243,15 @@ const LandingPage = () => {
           FOOTER / CTA
       ════════════════════════════════════════ */}
       <footer id="contact" className="py-24 border-t border-black/5 dark:border-white/10 text-center bg-surface-light dark:bg-surface-dark relative overflow-hidden">
-        <ParallaxLayer speed={0.2} className="absolute -inset-y-40 inset-x-0 pointer-events-none">
-          <ConstellationBg particleCount={35} />
+        <ParallaxLayer speed={0.1} className="absolute -inset-y-40 inset-x-0 pointer-events-none">
+          <ConstellationBg particleCount={22} />
         </ParallaxLayer>
         <div className="relative z-10">
           <div className="overflow-hidden mb-4">
             <motion.h2
               initial={{ y: "100%", opacity: 0 }}
               whileInView={{ y: 0, opacity: 0.08 }}
-              viewport={{ once: false }}
+              viewport={{ once: true }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter select-none text-black dark:text-white"
             >

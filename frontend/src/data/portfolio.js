@@ -7,7 +7,7 @@ export const heroContent = {
 };
 
 export const contactInfo = {
-  email: "skycode112324@example.com", 
+  email: "skycode112324@gmail.com", 
 };
 
 export const socialLinks = {

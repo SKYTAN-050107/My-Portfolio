@@ -31,11 +31,12 @@ export default function MatrixRain({ fontSize = 12, className = "" }) {
       const rect = canvas.parentElement.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      canvas.width = width * devicePixelRatio;
-      canvas.height = height * devicePixelRatio;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
-      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       columns = Math.floor(width / fontSize);
       drops = new Array(columns).fill(1).map(() => Math.random() * -100);
     };
@@ -43,7 +44,7 @@ export default function MatrixRain({ fontSize = 12, className = "" }) {
     resize();
 
     let lastTime = 0;
-    const interval = 50; // ms between frames ≈ 20fps (cheap)
+    const interval = 90;
 
     const draw = (now) => {
       if (!isVisible || !isInViewport) {

@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // ─────────────────────────────────────────────────────────────
 // TIMING CONSTANTS
 // ─────────────────────────────────────────────────────────────
 const T = {
-  COUNTER_DURATION: 1800,
-  NAME_HOLD:        600,
-  GLITCH_DURATION:  1800,
-  CURTAIN_STAGGER:  110,
-  PANEL_DURATION:   1200,
+  COUNTER_DURATION: 750,
+  NAME_HOLD:        280,
+  GLITCH_DURATION:  450,
+  CURTAIN_STAGGER:  55,
+  PANEL_DURATION:   650,
 };
 
-const PANEL_COUNT = 8;
+const PANEL_COUNT = 6;
 const NAME = "SKY TAN";
 const ROLE = "Data Enthusiast & Developer";
 
@@ -52,7 +52,6 @@ const GlitchText = ({ text, isGlitching, className }) => {
 
   useEffect(() => {
     if (!isGlitching) {
-      setGlitchOffset({ r: 0, b: 0 });
       return;
     }
     const interval = setInterval(() => {
@@ -149,21 +148,6 @@ const IntroScreen = ({ onComplete, name = NAME }) => {
   const rafRef = useRef(null);
   const startTimeRef = useRef(null);
 
-  // Mouse parallax on name
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const smX = useSpring(mouseX, { stiffness: 60, damping: 20 });
-  const smY = useSpring(mouseY, { stiffness: 60, damping: 20 });
-
-  useEffect(() => {
-    const handler = (e) => {
-      mouseX.set((e.clientX / window.innerWidth - 0.5) * 30);
-      mouseY.set((e.clientY / window.innerHeight - 0.5) * 15);
-    };
-    window.addEventListener("mousemove", handler);
-    return () => window.removeEventListener("mousemove", handler);
-  }, [mouseX, mouseY]);
-
   // ── Loading counter animation ──────────────────────────────
   useEffect(() => {
     if (phase !== "loading") return;
@@ -194,24 +178,28 @@ const IntroScreen = ({ onComplete, name = NAME }) => {
   useEffect(() => {
     if (phase !== "explode") return;
 
-    const newParticles = Array.from({ length: 28 }, (_, i) => ({
-      id: i,
-      x: 30 + Math.random() * 40,
-      y: 35 + Math.random() * 30,
-      size: 3 + Math.random() * 7,
-      delay: Math.random() * 0.4,
-      duration: 0.8 + Math.random() * 0.8,
-      moveY: -60 - Math.random() * 100,
-      moveX: (Math.random() - 0.5) * 80,
-    }));
-    setParticles(newParticles);
+    const particleTimer = setTimeout(() => {
+      setParticles(Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        x: 30 + Math.random() * 40,
+        y: 35 + Math.random() * 30,
+        size: 3 + Math.random() * 7,
+        delay: Math.random() * 0.4,
+        duration: 0.8 + Math.random() * 0.8,
+        moveY: -60 - Math.random() * 100,
+        moveX: (Math.random() - 0.5) * 80,
+      })));
+    }, 0);
 
     const timer = setTimeout(() => {
       setIsGlitching(true);
       setPhase("glitch");
     }, T.NAME_HOLD);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(particleTimer);
+      clearTimeout(timer);
+    };
   }, [phase]);
 
   // ── Glitch phase timing ───────────────────────────────────
@@ -413,7 +401,7 @@ const IntroScreen = ({ onComplete, name = NAME }) => {
           <motion.div
             key="name-block"
             className="absolute inset-0 flex flex-col items-center justify-center"
-            style={{ zIndex: 20, x: smX, y: smY }}
+            style={{ zIndex: 20 }}
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.06, y: -20, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }}

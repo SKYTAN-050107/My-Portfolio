@@ -129,3 +129,18 @@ body {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
+.marquee-track {
+  animation: marquee-x 28s linear infinite;
+}
+
+@keyframes marquee-x {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
